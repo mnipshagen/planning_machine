@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#009688</color>
-    <color name="colorPrimaryDark">#00796B</color>
-    <color name="colorAccent">#ffd740</color>
+    <color name="colorPrimary">#FFE082</color>
+    <color name="colorPrimaryDark">#FFB300</color>
+    <color name="colorAccent">#FF5722</color>
+    <color name="markCompleted">#5CB85C</color>
+    <color name="markInProgress">#5BC0DE</color>
+    <color name="markedMarked">#F5F5F5</color>
+    <color name="markedBachelor">#F3D1A2</color>
 </resources>

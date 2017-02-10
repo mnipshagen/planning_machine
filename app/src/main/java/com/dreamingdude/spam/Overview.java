@@ -1,24 +1,25 @@
 package com.dreamingdude.spam;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,11 @@ public class Overview extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private RecyclerView recyclerView;
-    private ModuleAdapter adapter;
+    private Old_ModuleAdapter adapter;
     private List<Module> moduleList;
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private String[] mMenu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +43,17 @@ public class Overview extends AppCompatActivity
         // so it says Overview in the Actionbar
         setTitle(R.string.title_overview);
 
-        // initialise toolabr and make it an awesome action bar!
+        // initialise toolbar and make it an awesome action bar!
         Toolbar toolbar = (Toolbar) findViewById(R.id.overview_toolbar);
         setSupportActionBar(toolbar);
 
-        // set up recycler view to dynamically setup the cards
+        // set up recycler view to dynamically setup the module list
         recyclerView = (RecyclerView) findViewById(R.id.overview_recycler_view);
 
         // set up the list of all Modules and put them into the adapter of RecylcerView
         moduleList = new ArrayList<>();
-        adapter = new ModuleAdapter(this, moduleList);
-
+        adapter = new Old_ModuleAdapter(this, moduleList);
+/*
         // initialise layout manager as gridmanager to display cards in grids
         RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(mLayoutManager);
@@ -57,6 +61,7 @@ public class Overview extends AppCompatActivity
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, dpToPx(10), true));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(adapter);
+*/
 
         // fill Module list and update Adapter
         prepareModules();
@@ -66,21 +71,22 @@ public class Overview extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "NomNom", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
 
         // Set up nav drawer
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.overview_drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        mMenu = getResources().getStringArray(R.array.menu);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.overview_drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.overview_nav_drawer);
+       // ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+       //         this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         // ehm??
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.activity_overview, mMenu));
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
         // initialise nav view
-        NavigationView navigationView = (NavigationView) findViewById(R.id.overview_nav_view);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_overview);
         navigationView.setNavigationItemSelectedListener(this);
     }
 
@@ -122,6 +128,18 @@ public class Overview extends AppCompatActivity
         moduleList.add(m);
 
         adapter.notifyDataSetChanged();
+    }
+
+    public class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
+            selectItem(position);
+        }
+    }
+
+
+    private void selectItem (int position) {
+        Fragment fragment = new
     }
 
     @Override
@@ -215,3 +233,6 @@ public class Overview extends AppCompatActivity
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
     }
 }
+
+
+
