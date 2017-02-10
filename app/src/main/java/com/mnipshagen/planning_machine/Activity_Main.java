@@ -23,6 +23,8 @@ public class Activity_Main extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     // and this will be our toolbar made actionbar
     Toolbar toolbar;
+    // setting up our Databse
+    SQL_Database mDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +37,9 @@ public class Activity_Main extends AppCompatActivity {
         // initialise toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mDB = new SQL_Database(this);
+
         // since the app was just started up, initialise Overview
         init(1);
         // and now set up all there is to set up for the nav drawer

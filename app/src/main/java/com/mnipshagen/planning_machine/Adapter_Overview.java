@@ -37,10 +37,6 @@ public class Adapter_Overview extends RecyclerView.Adapter <Adapter_Overview.Vie
         mContext = context;
     }
 
-    private Context getContext () {
-        return mContext;
-    }
-
     @Override
     public Adapter_Overview.ViewHolder onCreateViewHolder (ViewGroup parent, int ViewType) {
         Context context = parent.getContext();
