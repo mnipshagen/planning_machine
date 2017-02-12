@@ -16,10 +16,10 @@ import java.util.List;
  * Created by nipsh on 29/01/2017.
  */
 
-public class Adapter_Overview extends RecyclerView.Adapter <Adapter_Overview.ViewHolder> {
+public class Adapter_Module extends RecyclerView.Adapter <Adapter_Module.ViewHolder> {
 
     private Context mContext;
-    private MyCursorAdapter mCursorAdapter;
+    private Adapter_Module.MyCursorAdapter mCursorAdapter;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public ImageView state;
@@ -34,7 +34,7 @@ public class Adapter_Overview extends RecyclerView.Adapter <Adapter_Overview.Vie
         }
     }
 
-    public static class MyCursorAdapter extends CursorAdapter{
+    public static class MyCursorAdapter extends CursorAdapter {
 
         public MyCursorAdapter(Context context, Cursor cursor, int flags) {
             super(context, cursor, flags);
@@ -51,20 +51,20 @@ public class Adapter_Overview extends RecyclerView.Adapter <Adapter_Overview.Vie
         }
     }
 
-    public Adapter_Overview(Context context, Cursor data) {
+    public Adapter_Module(Context context, Cursor data) {
         mContext = context;
         mCursorAdapter = new MyCursorAdapter(mContext, data, 0);
     }
 
     @Override
-    public Adapter_Overview.ViewHolder onCreateViewHolder (ViewGroup parent, int ViewType) {
+    public Adapter_Module.ViewHolder onCreateViewHolder (ViewGroup parent, int ViewType) {
         View view = mCursorAdapter.newView(mContext, mCursorAdapter.getCursor(), parent);
         ViewHolder viewHolder = new ViewHolder(view);
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder (Adapter_Overview.ViewHolder viewHolder, int position) {
+    public void onBindViewHolder (Adapter_Module.ViewHolder viewHolder, int position) {
         Cursor cursor = mCursorAdapter.getCursor();
         cursor.moveToPosition(position);
         ImageView state = viewHolder.state;
@@ -74,9 +74,9 @@ public class Adapter_Overview extends RecyclerView.Adapter <Adapter_Overview.Vie
         grade = viewHolder.grade;
 
         state.setImageResource(R.drawable.inprogress);
-        name.setText(cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_NAME)));
-        ects.setText(cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS)));
-        grade.setText(cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)));
+        name.setText(cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE)));
+        ects.setText(cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ECTS)));
+        grade.setText(cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE)));
     }
 
     @Override

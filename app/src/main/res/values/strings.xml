@@ -9,6 +9,14 @@
         <item>Settings</item>
         <item>About</item>
     </string-array>
+    <string name="KI_title">Artificial Intelligence</string>
+    <string name="CL_title">Computational Linguistics</string>
+    <string name="INF_title">Computerscience</string>
+    <string name="KNP_title">Cognitive Neuropsychology</string>
+    <string name="MAT_title">Mathematics</string>
+    <string name="NI_title">Neuroinformatics</string>
+    <string name="NW_title">Neuroscience</string>
+    <string name="PHIL_title">Philosophy of Mind</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="app_not_available">There is no web browser</string>

@@ -1,6 +1,9 @@
 package com.mnipshagen.planning_machine;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Path;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -16,15 +19,18 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Stack;
+
 
 public class Activity_Main extends AppCompatActivity {
 
     // this will reference our great DrawerLayout
     private DrawerLayout mDrawerLayout;
     // and this will be our toolbar made actionbar
-    Toolbar toolbar;
+    private Toolbar toolbar;
+    private TextView title;
     // setting up our Databse
-    SQL_Database mDB;
+    private SQLiteDatabase mDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +43,7 @@ public class Activity_Main extends AppCompatActivity {
         // initialise toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        mDB = new SQL_Database(this);
+        title = (TextView) findViewById(R.id.title);
 
         // since the app was just started up, initialise Overview
         init(1);
@@ -118,11 +123,11 @@ public class Activity_Main extends AppCompatActivity {
             // Overview was selected
             case 1:
                 content = new Fragment_Overview();
-                ((TextView) findViewById(R.id.title)).setText(R.string.title_overview);
+                setActionBarTitle(R.string.title_overview);
                 break;
             // Search was selected
             case 2:
-                ((TextView) findViewById(R.id.title)).setText(R.string.title_search);
+                setActionBarTitle(R.string.title_search);
                 break;
             // Settings was selected
             case 3:
@@ -149,8 +154,12 @@ public class Activity_Main extends AppCompatActivity {
         }
         if (content != null) {
             FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.content, content).commit();
+            fragmentManager.beginTransaction().replace(R.id.content, content, String.valueOf(init)).commit();
         }
+    }
+
+    public void setActionBarTitle(int t) {
+        title.setText(t);
     }
 
 }
