@@ -1,64 +1,71 @@
 package com.mnipshagen.planning_machine;
 
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Path;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.Stack;
+/**
+ * A base activity which wraps the drawer around all activities.
+ */
 
+public class Activity_Base extends AppCompatActivity {
+    // this will store the reference to the drawer layout
+    protected DrawerLayout mDrawerLayout;
+    // and this to the content frame which holds the actual activities
+    protected FrameLayout content;
 
-public class Activity_Main extends AppCompatActivity {
+    // The reference to the toolbar, to initialise the action bar
+    protected Toolbar toolbar;
+    // Holding a reference to the title so that we can change it dynamically
+    protected TextView title;
 
-    // this will reference our great DrawerLayout
-    private DrawerLayout mDrawerLayout;
-    // and this will be our toolbar made actionbar
-    private Toolbar toolbar;
-    private TextView title;
-    // setting up our Databse
-    private SQLiteDatabase mDB;
-
+    /**
+     * This will intercept the setContentView method called upon creation of an activity and
+     * inflate the drawerlayout and initialise the actionbar, then inflating the content frame
+     * with the activity layout referenced by layoutResID
+     * {@link super.setContentView}
+     * @param layoutResID the ID to the layout of the displaying activity
+     */
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        // do what is to do
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    public void setContentView(int layoutResID) {
+        // inflate the drawerlayout
+        mDrawerLayout = (DrawerLayout) getLayoutInflater().inflate(R.layout.activity_drawer_wrapper, null);
+        content = (FrameLayout) mDrawerLayout.findViewById(R.id.content);
+        // inflate the content frame with the activity layout
+        getLayoutInflater().inflate(layoutResID, content, true);
+        super.setContentView(mDrawerLayout);
 
-        // set up reference the drawer xml
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.nav_drawer);
-        // initialise toolbar
+        // initialise action bar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         title = (TextView) findViewById(R.id.title);
-
-        // since the app was just started up, initialise Overview
-        init(1);
-        // and now set up all there is to set up for the nav drawer
+        // initialise the navigation drawer
         initNavigationDrawer();
     }
 
+    /**
+     * takes care of initialising the navigation drawer, with an listener for item clicks,
+     * which initialises the chosen activity
+     */
     private void initNavigationDrawer() {
-        NavigationView mNavigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView mNavigationView = (NavigationView) findViewById(R.id.drawer_drawer);
         mNavigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
                     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                         int id = item.getItemId();
-
+                        // depending on what was clicked, the drawer builds the corresponding intent
+                        // and then closes the drawer
                         switch (id) {
                             case R.id.nav_overview:
                                 init(1);
@@ -90,6 +97,8 @@ public class Activity_Main extends AppCompatActivity {
                         return true;
                     }
                 });
+        // here we set the upper header part of the navigation drawer
+        // TODO initialise user information or whatever should be displayed there
         View header = mNavigationView.getHeaderView(0);
         TextView head_text = (TextView) header.findViewById(R.id.header_text);
         head_text.setText("xmuster@uni-osnabrueck.de");
@@ -99,7 +108,7 @@ public class Activity_Main extends AppCompatActivity {
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
                 this,                    /* host Activity */
                 mDrawerLayout,           /* DrawerLayout object */
-                toolbar,
+                toolbar,                /* the actionbar opening the drawer */
                 R.string.drawer_open,    /* "open drawer" description for accessibility */
                 R.string.drawer_close)  /* "close drawer" description for accessibility */ {
             @Override
@@ -115,36 +124,41 @@ public class Activity_Main extends AppCompatActivity {
         actionBarDrawerToggle.syncState();
     }
 
+    /**
+     * starts the activity which was chosen in the drawer
+     * @param init the chosen item
+     */
     private void init(int init) {
-        //TODO implement nav calls
-        Fragment content = null;
+        Intent start = null;
 
         switch (init) {
-            // Overview was selected
+            // Activity_Overview was selected
             case 1:
-                content = new Fragment_Overview();
-                setActionBarTitle(R.string.title_overview);
+                start = new Intent(this, Activity_Overview.class);
                 break;
             // Search was selected
             case 2:
-                setActionBarTitle(R.string.title_search);
+                start = new Intent(this, Activity_Search.class);
                 break;
             // Settings was selected
             case 3:
                 Toast.makeText(getApplicationContext(),
                         "Settings Selected",
                         Toast.LENGTH_SHORT).show();
+                start = new Intent(this, Activity_Overview.class);
                 break;
             // IKW Webpage was selected
             case 4:
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.ikw.uos.de"));
                 startActivity(browserIntent);
+                //TODO call activity
                 break;
             // About was selected
             case 5:
                 Toast.makeText(getApplicationContext(),
                         "About Selected",
                         Toast.LENGTH_SHORT).show();
+                start = new Intent(this, Activity_About.class);
                 break;
             default:
                 Toast.makeText(getApplicationContext(),
@@ -152,14 +166,28 @@ public class Activity_Main extends AppCompatActivity {
                         Toast.LENGTH_LONG).show();
                 break;
         }
-        if (content != null) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.content, content, String.valueOf(init)).commit();
+        if (start != null) {
+            startActivity(start);
+        } else {
+            //TODO do something when error happens
         }
     }
 
-    public void setActionBarTitle(int t) {
+    /**
+     * A way to set the title of the actionbar
+     * (though title.setText() could be called from all activities)
+     * @param t the resource id pointing to the string
+     */
+    protected void setActionBarTitle(int t) {
         title.setText(t);
     }
-
+    /**
+     * A way to set the title of the actionbar
+     * Should not be used in final release!! All strings should be handled by the resources
+     * (though title.setText() could be called from all activities)
+     * @param s the string to set the title to
+     */
+    protected void setActionBarTitle(String s) {
+        title.setText(s);
+    }
 }

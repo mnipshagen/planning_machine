@@ -10,8 +10,6 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.List;
-
 /**
  * Created by nipsh on 29/01/2017.
  */
@@ -28,8 +26,8 @@ public class Adapter_Module extends RecyclerView.Adapter <Adapter_Module.ViewHol
         public ViewHolder (View view) {
             super(view);
             state = (ImageView) view.findViewById(R.id.state);
-            name = (TextView) view.findViewById(R.id.name);
-            ects = (TextView) view.findViewById(R.id.ects);
+            name = (TextView) view.findViewById(R.id.resultName);
+            ects = (TextView) view.findViewById(R.id.resultECTS);
             grade = (TextView) view.findViewById(R.id.grade);
         }
     }

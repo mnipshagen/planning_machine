@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 /**
- * Created by nipsh on 11/02/2017.
+ * Whenever the app is started, show this instead of the boring white screen
  */
 
 public class Activity_Splash extends AppCompatActivity {
@@ -13,8 +13,8 @@ public class Activity_Splash extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Intent intent = new Intent(this, Activity_Main.class);
+        // TODO make it pretty
+        Intent intent = new Intent(this, Activity_Overview.class);
         startActivity(intent);
         finish();
     }

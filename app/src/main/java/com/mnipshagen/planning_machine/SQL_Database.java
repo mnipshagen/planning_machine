@@ -7,13 +7,20 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
 /**
- * Created by nipsh on 08/02/2017.
+ * The SQL handler for our database
  */
-
+// TODO split into two databases, one for the courseDB and one for modules and courses to avoid
+// TODO   the databases being unavailable while one of the tables is queried
 public class SQL_Database extends SQLiteAssetHelper {
+    // we implement it as a singleton, since we can only have one active connection anyway
+    private static SQL_Database sInstance;
+
+    // the database version to make "on upgrade" available
     private final static int DATABASE_VERSION = 1;
+    // the database file name
     private final static String DB_NAME = "planning_machine.db";
 
+    // the table "course_db" and all its columns
     final static String COURSE_TABLE_NAME = "course_db";
     final static String COURSE_COLUMN_ID = "_id";
     final static String COURSE_COLUMN_COURSE_ID = "course_id";
@@ -31,6 +38,7 @@ public class SQL_Database extends SQLiteAssetHelper {
     final static String COURSE_COLUMN_FIELDS_STR = "fields_str";
     final static String COURSE_COLUMN_SINGLE_FIELD = "singleField";
 
+    // the table "modules" and all its columns
     final static String MODULE_TABLE_NAME = "modules";
     final static String MODULE_COLUMN_ID = "_id";
     final static String MODULE_COLUMN_NAME = "name";
@@ -38,9 +46,12 @@ public class SQL_Database extends SQLiteAssetHelper {
     final static String MODULE_COLUMN_ECTS_COMP = "ects_comp";
     final static String MODULE_COLUMN_ECTS_OPTCOMP = "ects_optcomp";
     final static String MODULE_COLUMN_ECTS = "ects_current";
+    final static String MODULE_COLUMN_IPECTS = "ects_inprogress";
     final static String MODULE_COLUMN_GRADE = "grade";
     final static String MODULE_COLUMN_COURSES = "courses";
 
+    // the table "courses" and all its columns, are mostly duplicates of "course_db"
+    // added columns for module, grade, state, etc...
     final static String COURSES_TABLE_NAME = "courses";
     final static String COURSES_COLUMN_ID = "_id";
     final static String COURSES_COLUMN_COURSE_ID = "course_id";
@@ -48,7 +59,7 @@ public class SQL_Database extends SQLiteAssetHelper {
     final static String COURSES_COLUMN_MODULE = "module";
     final static String COURSES_COLUMN_GRADE = "grade";
     final static String COURSES_COLUMN_STATE = "state";
-    final static String COURSES_COLUMN_COURSE_DESC = "desc";
+    final static String COURSES_COLUMN_COURSE_DESC = "course_desc";
     final static String COURSES_COLUMN_ECTS = "ects";
     final static String COURSES_COLUMN_TERM = "term";
     final static String COURSES_COLUMN_YEAR = "year";
@@ -61,12 +72,21 @@ public class SQL_Database extends SQLiteAssetHelper {
     final static String COURSES_COLUMN_FIELDS_STR = "fields_str";
     final static String COURSES_COLUMN_SINGLE_FIELD = "singleField";
 
-    private Context context;
+    /**
+     * call the instance of the database handler and initialise it if not yet done
+     * @param context the context from which it is called
+     * @return the SQL_Database handler
+     */
+    public static synchronized SQL_Database getInstance(Context context) {
+        if (sInstance == null) {
+            sInstance = new SQL_Database(context);
+        }
+        return sInstance;
+    }
 
-    public SQL_Database(Context context) {
+    // use the constructor from "SQLiteAssetHelper" (see github) to create the databse from the asset
+    private SQL_Database(Context context) {
         super(context, DB_NAME, null, DATABASE_VERSION);
-        // Store the context for later use
-        this.context = context;
     }
 /*
     @Override

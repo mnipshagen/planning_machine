@@ -9,6 +9,17 @@
         <item>Settings</item>
         <item>About</item>
     </string-array>
+    <string-array name="searchSpinnerModules">
+        <item>In Module…</item>
+        <item>Artificial Intelligence</item>
+        <item>Cognitive Neuropsychology</item>
+        <item>Computational Linguistics</item>
+        <item>Computerscience</item>
+        <item>Mathematics</item>
+        <item>Neuroinformatics</item>
+        <item>Neurobiology</item>
+        <item>Philosophy of Mind</item>
+    </string-array>
     <string name="KI_title">Artificial Intelligence</string>
     <string name="CL_title">Computational Linguistics</string>
     <string name="INF_title">Computerscience</string>
@@ -17,7 +28,9 @@
     <string name="NI_title">Neuroinformatics</string>
     <string name="NW_title">Neuroscience</string>
     <string name="PHIL_title">Philosophy of Mind</string>
+    <string name="could_not_start">Could not start activity. Defaulted to Overview.</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="app_not_available">There is no web browser</string>
+    <string name="select_course">Course title</string>
 </resources>
