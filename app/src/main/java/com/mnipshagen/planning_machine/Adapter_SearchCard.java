@@ -1,11 +1,17 @@
 package com.mnipshagen.planning_machine;
 
+import android.animation.ValueAnimator;
 import android.database.Cursor;
 import android.support.transition.TransitionManager;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -22,9 +28,12 @@ public class Adapter_SearchCard extends RecyclerCursorAdapter<Adapter_SearchCard
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView name, ects, studipCode, termYear, lecturers, fields, description;
         public LinearLayout expanded_content;
+        private boolean isViewExpanded = false;
+        public int originalHeight = 0;
 
         public ViewHolder (View view) {
             super(view);
+//            view.setOnClickListener(this);
             name = (TextView) view.findViewById(R.id.result_title);
             ects = (TextView) view.findViewById(R.id.result_ects);
             studipCode = (TextView) view.findViewById(R.id.result_studip);
@@ -34,6 +43,62 @@ public class Adapter_SearchCard extends RecyclerCursorAdapter<Adapter_SearchCard
             description = (TextView) view.findViewById(R.id.result_description);
             expanded_content = (LinearLayout) view.findViewById(R.id.result_expaned_layout);
         }
+
+//        @Override
+//        public void onClick(final View v) {
+//
+//            if (originalHeight == 0) {
+//                originalHeight = v.getHeight();
+//
+//                ValueAnimator valueAnimator;
+//                if (!isViewExpanded) {
+//                    expanded_content.setVisibility(View.VISIBLE);
+//                    isViewExpanded = true;
+//                    valueAnimator = ValueAnimator.ofInt(originalHeight, originalHeight + (int) (originalHeight * 2.0)); // These values in this method can be changed to expand however much you like
+//                    Log.v("isViewExpanded", "TRUMP SAGT WROOONG");
+//                } else {
+//                    isViewExpanded = false;
+//                    valueAnimator = ValueAnimator.ofInt(originalHeight + (int) (originalHeight * 2.0), originalHeight);
+//
+//                    Animation a = new AlphaAnimation(1.00f, 0.00f); // Fade out
+//
+//                    a.setDuration(200);
+//                    Log.v("isViewExpanded", "TRUMP SAGT EVERYONE KNOWS IT");
+//                    // Set a listener to the animation and configure onAnimationEnd
+//                    a.setAnimationListener(new Animation.AnimationListener() {
+//                        @Override
+//                        public void onAnimationStart(Animation animation) {
+//
+//                        }
+//
+//                        @Override
+//                        public void onAnimationEnd(Animation animation) {
+//                            expanded_content.setVisibility(View.GONE);
+//                            expanded_content.setEnabled(false);
+//                        }
+//
+//                        @Override
+//                        public void onAnimationRepeat(Animation animation) {
+//
+//                        }
+//                    });
+//
+//                    // Set the animation on the custom view
+//                    expanded_content.startAnimation(a);
+//                }
+//                valueAnimator.setDuration(200);
+//                valueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+//                valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+//                    public void onAnimationUpdate(ValueAnimator animation) {
+//                        Integer value = (Integer) animation.getAnimatedValue();
+//                        v.getLayoutParams().height = value;
+//                        v.requestLayout();
+//                    }
+//                });
+//                valueAnimator.start();
+//
+//            }
+//        }
     }
 
     public Adapter_SearchCard(Cursor cursor, RecyclerView rv) {
@@ -49,7 +114,7 @@ public class Adapter_SearchCard extends RecyclerCursorAdapter<Adapter_SearchCard
     }
 
     @Override
-    public void onBindViewHolder (ViewHolder viewHolder, final int position) {
+    public void onBindViewHolder (final ViewHolder viewHolder, int position) {
         if (!mDataValid) {
             throw new IllegalStateException("this should only be called when the cursor is valid");
         }
@@ -66,17 +131,19 @@ public class Adapter_SearchCard extends RecyclerCursorAdapter<Adapter_SearchCard
         fields = viewHolder.fields;
         description = viewHolder.description;
 
-        final boolean isExpanded = position==mExpandedPosition;
-        viewHolder.expanded_content.setVisibility(isExpanded?View.VISIBLE:View.GONE);
-        viewHolder.itemView.setActivated(isExpanded);
-        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mExpandedPosition = isExpanded ? -1:position;
-                TransitionManager.beginDelayedTransition(rv);
-                notifyItemChanged(position);
-            }
-        });
+//        final boolean isExpanded = viewHolder.getAdapterPosition()==mExpandedPosition;
+//        viewHolder.expanded_content.setVisibility(isExpanded?View.VISIBLE:View.GONE);
+//        viewHolder.itemView.setActivated(isExpanded);
+//        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                int oldExpanded = mExpandedPosition;
+//                mExpandedPosition = isExpanded ? -1:viewHolder.getAdapterPosition();
+//                TransitionManager.beginDelayedTransition(rv);
+//                notifyItemChanged(oldExpanded);
+//                notifyItemChanged(viewHolder.getAdapterPosition());
+//            }
+//        });
 
         String termandyear =
                 String.format("%s%s",
@@ -115,4 +182,5 @@ public class Adapter_SearchCard extends RecyclerCursorAdapter<Adapter_SearchCard
         lecturers.setText("taught by " + mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_TEACHERS_STR)));
         description.setText(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_COURSE_DESC)));
     }
+
 }

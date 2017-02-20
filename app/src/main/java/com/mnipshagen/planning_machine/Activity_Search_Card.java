@@ -1,15 +1,21 @@
 package com.mnipshagen.planning_machine;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.transition.TransitionManager;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -53,19 +59,62 @@ public class Activity_Search_Card extends Activity_Base {
         Adapter_SearchCard adapter = new Adapter_SearchCard(null, rv);
         rv.setAdapter(adapter);
         rv.setLayoutManager(new LinearLayoutManager(this));
-        // on touchy touchy display dialog with more information or the direct way to add the course
-//        rv.addOnItemTouchListener(
-//                new RecyclerItemClickListener(this, rv, new RecyclerItemClickListener.OnItemClickListener() {
-//                    @Override
-//                    public void onItemClick(View view, int position) {
-//                        Adapter_SearchCard.ViewHolder vh = (Adapter_SearchCard.ViewHolder) rv.findViewHolderForLayoutPosition(position);
-//                        // TODO
-//                    }
-//
-//                    @Override
-//                    public void onLongItemClick(View view, int position) {
-//                    }
-//                }));
+        rv.addOnItemTouchListener(
+                new RecyclerItemClickListener(this, rv,
+                        new RecyclerItemClickListener.OnItemClickListener() {
+
+                            @Override
+                            public void onItemClick(final View view, int position) {
+                                final Adapter_SearchCard.ViewHolder vh
+                                        = (Adapter_SearchCard.ViewHolder) rv.findViewHolderForLayoutPosition(position);
+                                ValueAnimator valueAnimator;
+                                if (vh.originalHeight == 0) {
+                                    vh.originalHeight = vh.itemView.getHeight();
+                                }
+
+                                if (vh.expanded_content.getVisibility() == View.GONE) {
+                                    vh.expanded_content.setVisibility(View.VISIBLE);
+                                    vh.itemView.setActivated(true);
+                                    TransitionManager.beginDelayedTransition(rv);
+                                    valueAnimator = ValueAnimator.ofInt(vh.originalHeight, vh.originalHeight + (int) (vh.originalHeight * 2.0));
+                                } else {
+                                    vh.itemView.setActivated(false);
+                                    valueAnimator = ValueAnimator.ofInt(vh.originalHeight + (int) (vh.originalHeight * 2.0), vh.originalHeight);
+                                    Animation a = new AlphaAnimation(1.00f, 0.00f); // Fade out
+                                    a.setDuration(300);
+                                    // Set a listener to the animation and configure onAnimationEnd
+                                    a.setAnimationListener(new Animation.AnimationListener() {
+                                        @Override
+                                        public void onAnimationStart(Animation animation) {}
+
+                                        @Override
+                                        public void onAnimationEnd(Animation animation) {
+                                            vh.expanded_content.setVisibility(View.GONE);
+                                        }
+
+                                        @Override
+                                        public void onAnimationRepeat(Animation animation) {}
+                                    });
+
+                                    // Set the animation on the custom view
+                                    vh.expanded_content.startAnimation(a);
+                                }
+                                valueAnimator.setDuration(200);
+                                valueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+                                valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                                    public void onAnimationUpdate(ValueAnimator animation) {
+                                        view.getLayoutParams().height = (Integer) animation.getAnimatedValue();
+                                        view.requestLayout();
+                                    }
+                                });
+                                valueAnimator.start();
+                            }
+
+                            @Override
+                            public void onLongItemClick(View view, int position) {}
+                        }
+                )
+        );
         // on fab click start the search
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.search_FAB);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -93,7 +142,7 @@ public class Activity_Search_Card extends Activity_Base {
 
         // save module which we want to search for and course name
         String module = spinner.getSelectedItem().toString();
-        String course = courseTitle.getText().toString();
+        String course = courseTitle.getText().toString().replace(" ","%");
         // all the columns to search for
         String[] columns = {
                 SQL_Database.COURSE_COLUMN_ID,
