@@ -19,4 +19,7 @@
     <color name="pink_pressed">#ec407a</color>
     <color name="blue_semi_transparent">#805677fc</color>
     <color name="blue_semi_transparent_pressed">#80738ffe</color>
+    <color name="uos_red">#ad1034</color>
+    <color name="comment_background">#ffffffff</color>
+    <color name="selected_comment_background">#aaffffff</color>
 </resources>

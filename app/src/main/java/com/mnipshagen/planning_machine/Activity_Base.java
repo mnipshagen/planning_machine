@@ -1,13 +1,16 @@
 package com.mnipshagen.planning_machine;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.inputmethod.InputMethodManager;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -18,7 +21,7 @@ import android.widget.Toast;
  * A base activity which wraps the drawer around all activities.
  */
 
-public class Activity_Base extends AppCompatActivity {
+public class Activity_Base extends AppCompatActivity{
     // this will store the reference to the drawer layout
     protected DrawerLayout mDrawerLayout;
     // and this to the content frame which holds the actual activities
@@ -47,11 +50,22 @@ public class Activity_Base extends AppCompatActivity {
 
         // initialise action bar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
         title = (TextView) findViewById(R.id.title);
         // initialise the navigation drawer
         initNavigationDrawer();
     }
+
+//    @Override
+//    public void onBackPressed() {
+//        if(!this.getClass().getSimpleName().equals("Activity_Overview")){
+//            init(1);
+//        }
+//        else {
+//            super.onBackPressed();
+//        }
+//    }
 
     /**
      * takes care of initialising the navigation drawer, with an listener for item clicks,
@@ -105,23 +119,38 @@ public class Activity_Base extends AppCompatActivity {
 
         // ActionBarDrawerToggle ties together the the proper interactions
         // between the sliding drawer and the action bar app icon
+
         ActionBarDrawerToggle actionBarDrawerToggle = new ActionBarDrawerToggle(
                 this,                    /* host Activity */
                 mDrawerLayout,           /* DrawerLayout object */
-                toolbar,                /* the actionbar opening the drawer */
+                toolbar,
                 R.string.drawer_open,    /* "open drawer" description for accessibility */
                 R.string.drawer_close)  /* "close drawer" description for accessibility */ {
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
             }
-
+            @Override
             public void onDrawerOpened(View drawerView) {
+                if (getCurrentFocus() != null) {
+                    InputMethodManager imm =
+                            (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                }
                 super.onDrawerOpened(drawerView);
             }
         };
         mDrawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            mDrawerLayout.openDrawer(GravityCompat.START);  // OPEN DRAWER
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -134,14 +163,19 @@ public class Activity_Base extends AppCompatActivity {
         switch (init) {
             // Activity_Overview was selected
             case 1:
-                start = new Intent(this, Activity_Overview.class);
+                if(!this.getClass().getSimpleName().equals("Activity_Overview")) {
+                    start = new Intent(this, Activity_Overview.class);
+                }
                 break;
             // Search was selected
             case 2:
-                start = new Intent(this, Activity_Search.class);
+                if(!this.getClass().getSimpleName().equals("Activity_Search")) {
+                    start = new Intent(this, Activity_Search_Card.class);
+                }
                 break;
             // Settings was selected
             case 3:
+                if(!this.getClass().getSimpleName().equals("Activity_Settings")){}
                 Toast.makeText(getApplicationContext(),
                         "Settings Selected",
                         Toast.LENGTH_SHORT).show();
@@ -155,10 +189,9 @@ public class Activity_Base extends AppCompatActivity {
                 break;
             // About was selected
             case 5:
-                Toast.makeText(getApplicationContext(),
-                        "About Selected",
-                        Toast.LENGTH_SHORT).show();
-                start = new Intent(this, Activity_About.class);
+                if(!this.getClass().getSimpleName().equals("Activity_About")) {
+                    start = new Intent(this, Activity_About.class);
+                }
                 break;
             default:
                 Toast.makeText(getApplicationContext(),

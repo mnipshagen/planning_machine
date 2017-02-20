@@ -16,10 +16,10 @@ import java.lang.ref.WeakReference;
 public class Async_Search extends AsyncTask<String[], Void, Cursor> {
     // hold a reference to the activity from which it was started
     // weak, so it may be collected in case the activity is leaving the active view while searching
-    private WeakReference<Activity_Search> mWeakActivity;
+    private WeakReference<Activity> mWeakActivity;
 
-    public Async_Search (Activity_Search activity) {
-        this.mWeakActivity = new WeakReference<Activity_Search>(activity);
+    public Async_Search (Activity activity) {
+        this.mWeakActivity = new WeakReference<Activity>(activity);
     }
 
     @Override
@@ -43,10 +43,10 @@ public class Async_Search extends AsyncTask<String[], Void, Cursor> {
     @Override
     protected void onPostExecute(Cursor results) {
         // collect the activity from the weak reference
-        Activity_Search activity = mWeakActivity.get();
+        Activity activity = mWeakActivity.get();
         // if the activity is still active call the onSearchCompleted method
         if (activity != null) {
-            activity.onSearchCompleted(results);
+            ((Activity_Search_Card)activity).onSearchCompleted(results);
         }
         // dump the cursor for debug reasons
         // Log.v("Async result", DatabaseUtils.dumpCursorToString(results));

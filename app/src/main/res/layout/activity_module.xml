@@ -13,7 +13,7 @@ android:layout_height="match_parent">
         <android.support.design.widget.CollapsingToolbarLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed"
+            app:layout_scrollFlags="scroll|enterAlways"
             app:contentScrim="?attr/colorPrimary">
 
             <LinearLayout
@@ -40,25 +40,12 @@ android:layout_height="match_parent">
 
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.widget.NestedScrollView
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    app:layout_behavior="android.support.design.widget.AppBarLayout$ScrollingViewBehavior"
-    android:id="@+id/moduleScrollView">
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/moduleRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="vertical"/>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/moduleRecycler"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="vertical"/>
-
-        </RelativeLayout>
-
-    </android.support.v4.widget.NestedScrollView>
 
     <com.getbase.floatingactionbutton.FloatingActionsMenu
         android:id="@+id/moduleFaB"

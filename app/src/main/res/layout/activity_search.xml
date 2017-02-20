@@ -2,23 +2,22 @@
 <android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:fitsSystemWindows="false"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.mnipshagen.planning_machine.Activity_Search">
+    android:layout_height="match_parent">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/search_app_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="120dp"
         android:fitsSystemWindows="true" >
 
         <android.support.design.widget.CollapsingToolbarLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
             app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            android:fitsSystemWindows="true"
+            app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed|snap">
 
             <android.support.constraint.ConstraintLayout
                 android:layout_width="match_parent"
@@ -82,25 +81,11 @@
         app:layout_anchor="@id/search_app_bar"
         app:layout_anchorGravity="bottom|end"/>
 
-    <android.support.v4.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/search_scrollView"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" >
-
-        <RelativeLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/searchRecycler"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/searchRecycler"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="vertical"/>
-
-        </RelativeLayout>
-
-    </android.support.v4.widget.NestedScrollView>
+            android:layout_height="wrap_content"
+            android:scrollbars="vertical"/>
 
 </android.support.design.widget.CoordinatorLayout>

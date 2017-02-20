@@ -36,9 +36,6 @@ public class Activity_Overview extends Activity_Base {
         setContentView(R.layout.activity_overview);
         setActionBarTitle(R.string.title_overview);
 
-        // this is our lower scrolling part
-        NestedScrollView scrollView = (NestedScrollView) findViewById(R.id.overviewScrollView);
-        scrollView.setSmoothScrollingEnabled(true);
         // initalise the database and fetch all the module data
         SQLiteDatabase db = SQL_Database.getInstance(this).getReadableDatabase();
         String[] columns = {
@@ -63,6 +60,7 @@ public class Activity_Overview extends Activity_Base {
         // by going through the modules
         int ach_ects = 0;
         int ip_ects = 0;
+        cursor.moveToPosition(-1);
         while(cursor.moveToNext()){
             ach_ects += cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS));
             ip_ects += cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_IPECTS));

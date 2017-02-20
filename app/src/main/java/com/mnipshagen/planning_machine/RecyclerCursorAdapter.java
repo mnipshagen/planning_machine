@@ -11,9 +11,9 @@ import android.support.v7.widget.RecyclerView;
 
 public abstract class RecyclerCursorAdapter <ViewHolder extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<ViewHolder> {
 
-    private Cursor mCursor;
+    protected Cursor mCursor;
 
-    private boolean mDataValid;
+    protected boolean mDataValid;
 
     private int mRowIdColumn;
 
@@ -54,18 +54,18 @@ public abstract class RecyclerCursorAdapter <ViewHolder extends RecyclerView.Vie
         super.setHasStableIds(true);
     }
 
-    public abstract void onBindViewHolder(ViewHolder viewHolder, Cursor cursor);
-
-    @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int position) {
-        if (!mDataValid) {
-            throw new IllegalStateException("this should only be called when the cursor is valid");
-        }
-        if (!mCursor.moveToPosition(position)) {
-            throw new IllegalStateException("couldn't move cursor to position " + position);
-        }
-        onBindViewHolder(viewHolder, mCursor);
-    }
+//    public abstract void onBindViewHolder(ViewHolder viewHolder, Cursor cursor);
+//
+//    @Override
+//    public void onBindViewHolder(ViewHolder viewHolder, int position) {
+//        if (!mDataValid) {
+//            throw new IllegalStateException("this should only be called when the cursor is valid");
+//        }
+//        if (!mCursor.moveToPosition(position)) {
+//            throw new IllegalStateException("couldn't move cursor to position " + position);
+//        }
+//        onBindViewHolder(viewHolder, mCursor);
+//    }
 
     /**
      * Change the underlying cursor to a new cursor. If there is an existing cursor it will be
