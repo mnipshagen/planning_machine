@@ -29,7 +29,8 @@ public class Activity_Overview extends Activity_Base {
     // the bachelor credits and the bachelor thesis credits are fix.
     private final int BACHELOR_CREDITS = 180;
     private final int THESIS_CREDITS = 12;
-    
+    private Cursor cursor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +48,7 @@ public class Activity_Overview extends Activity_Base {
                 SQL_Database.MODULE_COLUMN_GRADE
         };
         // query the database
-        final Cursor cursor = db.query(
+        cursor = db.query(
                 SQL_Database.MODULE_TABLE_NAME,
                 null, null, null,
                 null, null, SQL_Database.MODULE_COLUMN_ID);
@@ -111,7 +112,7 @@ public class Activity_Overview extends Activity_Base {
         rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         rv.setItemAnimator(new DefaultItemAnimator());
         // initialise the adapter
-        Adapter_Overview adapter = new Adapter_Overview(this, cursor);
+        AdapterCard_Overview adapter = new AdapterCard_Overview(cursor, this);
         rv.setAdapter(adapter);
         // and the layoutmanager
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);

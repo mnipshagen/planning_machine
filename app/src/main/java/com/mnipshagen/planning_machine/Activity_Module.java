@@ -188,7 +188,7 @@ public class Activity_Module extends Activity_Base {
                 SQL_Database.COURSES_COLUMN_ECTS,
                 SQL_Database.COURSES_COLUMN_GRADE,
                 SQL_Database.COURSES_COLUMN_STATE
-        };
+    };
         String courseSelection = SQL_Database.COURSES_COLUMN_MODULE + " = " + "'" + module_code + "'";
 
         courses = db.query(SQL_Database.COURSES_TABLE_NAME, courseData, courseSelection, null, null, null, SQL_Database.COURSES_COLUMN_STATE);

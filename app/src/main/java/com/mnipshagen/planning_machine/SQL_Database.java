@@ -48,10 +48,9 @@ public class SQL_Database extends SQLiteAssetHelper {
     final static String MODULE_COLUMN_ECTS = "ects_current";
     final static String MODULE_COLUMN_IPECTS = "ects_inprogress";
     final static String MODULE_COLUMN_GRADE = "grade";
-    final static String MODULE_COLUMN_COURSES = "courses";
 
     // the table "courses" and all its columns, are mostly duplicates of "course_db"
-    // added columns for module, grade, state, etc...
+    // added columns for module, grade, graph, etc...
     final static String COURSES_TABLE_NAME = "courses";
     final static String COURSES_COLUMN_ID = "_id";
     final static String COURSES_COLUMN_COURSE_ID = "course_id";
