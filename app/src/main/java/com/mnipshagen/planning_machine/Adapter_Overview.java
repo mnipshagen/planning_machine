@@ -19,7 +19,7 @@ import java.util.List;
  * Created by nipsh on 29/01/2017.
  */
 
-public class AdapterCard_Overview extends RecyclerCursorAdapter<AdapterCard_Overview.ViewHolder> {
+public class Adapter_Overview extends RecyclerCursorAdapter<Adapter_Overview.ViewHolder> {
 
     private Context mContext;
 
@@ -35,7 +35,7 @@ public class AdapterCard_Overview extends RecyclerCursorAdapter<AdapterCard_Over
         }
     }
 
-    public AdapterCard_Overview(Cursor cursor, Context context) {
+    public Adapter_Overview(Cursor cursor, Context context) {
        super(cursor);
         mContext = context;
     }
@@ -56,7 +56,8 @@ public class AdapterCard_Overview extends RecyclerCursorAdapter<AdapterCard_Over
         graph = viewHolder.graph;
 
         name.setText(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_NAME)));
-        subname.setText(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS)));
+        String credits = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS)) + " ECTS";
+        subname.setText(credits);
 
         List<PieEntry> entries = new ArrayList<>();
         // will hold the colours to use

@@ -170,7 +170,7 @@ public class Activity_Base extends AppCompatActivity{
             // Search was selected
             case 2:
                 if(!this.getClass().getSimpleName().equals("Activity_Search")) {
-                    start = new Intent(this, Activity_Search_Card.class);
+                    start = new Intent(this, Activity_Search.class);
                 }
                 break;
             // Settings was selected

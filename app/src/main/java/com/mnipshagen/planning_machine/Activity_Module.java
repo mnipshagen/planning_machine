@@ -3,6 +3,7 @@ package com.mnipshagen.planning_machine;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -67,7 +68,7 @@ public class Activity_Module extends Activity_Base {
         rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         rv.setItemAnimator(new DefaultItemAnimator());
         // the adapter to handle the data
-        Adapter_Module adapter = new Adapter_Module(this, courses);
+        Adapter_Module adapter = new Adapter_Module(courses,this);
         rv.setAdapter(adapter);
         // and now display it!
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -160,7 +161,6 @@ public class Activity_Module extends Activity_Base {
         graph.setEntryLabelColor(R.color.half_black);
 
 
-        Log.v("Module Data:", "AchvETCS: " + String.valueOf(achv_credits) + "; iPECTS: " + String.valueOf(ip_credits) + "; Grade: " + String.valueOf(grade));
         SQLiteDatabase db = SQL_Database.getInstance(this).getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(SQL_Database.MODULE_COLUMN_ECTS, achv_credits);
@@ -171,16 +171,17 @@ public class Activity_Module extends Activity_Base {
 
     @Override
     protected void onPause() {
-        super.onPause();
         // when the activity leaves the active view, close the cursor to prevent memory leak
         courses.close();
+        db.close();
+        super.onPause();
     }
 
     /**
      * initialise the cursor to fetch and hold all courses of the module
      */
     private void initCursor() {
-        db = SQL_Database.getInstance(this).getReadableDatabase();
+        db = SQL_Database.getInstance(this).getWritableDatabase();
 
         String[] courseData = {
                 SQL_Database.COURSES_COLUMN_ID,
@@ -188,7 +189,7 @@ public class Activity_Module extends Activity_Base {
                 SQL_Database.COURSES_COLUMN_ECTS,
                 SQL_Database.COURSES_COLUMN_GRADE,
                 SQL_Database.COURSES_COLUMN_STATE
-    };
+        };
         String courseSelection = SQL_Database.COURSES_COLUMN_MODULE + " = " + "'" + module_code + "'";
 
         courses = db.query(SQL_Database.COURSES_TABLE_NAME, courseData, courseSelection, null, null, null, SQL_Database.COURSES_COLUMN_STATE);

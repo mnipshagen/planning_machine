@@ -2,14 +2,11 @@ package com.mnipshagen.planning_machine;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -73,9 +70,28 @@ public class Activity_Overview extends Activity_Base {
         List<PieEntry> entries = new ArrayList<>();
         entries.add(new PieEntry(THESIS_CREDITS, String.valueOf(THESIS_CREDITS)));
         int todo_ects = BACHELOR_CREDITS - ach_ects - ip_ects - THESIS_CREDITS;
-        entries.add(new PieEntry(todo_ects, String.valueOf(todo_ects)));
-        entries.add(new PieEntry(ip_ects, String.valueOf(ip_ects)));
-        entries.add(new PieEntry(ach_ects, String.valueOf(ach_ects)));
+        String todo_str = String.valueOf(todo_ects);
+        if(todo_ects <= 0) {
+            todo_ects = 0;
+            todo_str = "";
+        }
+        if(ip_ects > (BACHELOR_CREDITS-THESIS_CREDITS-ach_ects)) {
+            ip_ects = BACHELOR_CREDITS-THESIS_CREDITS-ach_ects;
+        }
+        String ip_str = String.valueOf(ip_ects);
+        if(ip_ects <= 0) {
+            ip_str="";
+        }
+        if(ach_ects > BACHELOR_CREDITS-THESIS_CREDITS) {
+            ach_ects = BACHELOR_CREDITS-THESIS_CREDITS;
+        }
+        String ach_str = String.valueOf(ach_ects);
+        if(ach_ects == 0 ) {
+            ach_str = "";
+        }
+        entries.add(new PieEntry(todo_ects, todo_str));
+        entries.add(new PieEntry(ip_ects, ip_str));
+        entries.add(new PieEntry(ach_ects, ach_str));
         // create dataset
         PieDataSet pieSet = new PieDataSet(entries, "Credits towards Bachelor");
         // we display the formatted description of each slice. no need for double information
@@ -112,7 +128,7 @@ public class Activity_Overview extends Activity_Base {
         rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         rv.setItemAnimator(new DefaultItemAnimator());
         // initialise the adapter
-        AdapterCard_Overview adapter = new AdapterCard_Overview(cursor, this);
+        Adapter_Overview adapter = new Adapter_Overview(cursor, this);
         rv.setAdapter(adapter);
         // and the layoutmanager
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);

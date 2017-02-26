@@ -20,7 +20,6 @@
         <activity android:name=".Activity_Overview"/>
         <activity android:name=".Activity_Module" />
         <activity android:name=".Activity_Search" />
-        <activity android:name=".Activity_Search_Card" />
         <activity android:name=".Activity_About" />
 
         <provider

@@ -2,10 +2,8 @@ package com.mnipshagen.planning_machine;
 
 import android.app.Activity;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import java.lang.ref.WeakReference;
 
@@ -46,7 +44,7 @@ public class Async_Search extends AsyncTask<String[], Void, Cursor> {
         Activity activity = mWeakActivity.get();
         // if the activity is still active call the onSearchCompleted method
         if (activity != null) {
-            ((Activity_Search_Card)activity).onSearchCompleted(results);
+            ((Activity_Search)activity).onSearchCompleted(results);
         }
         // dump the cursor for debug reasons
         // Log.v("Async result", DatabaseUtils.dumpCursorToString(results));
