@@ -34,6 +34,47 @@ public class Activity_Overview extends Activity_Base {
         setContentView(R.layout.activity_overview);
         setActionBarTitle(R.string.title_overview);
 
+        /* The lower half is now */
+        RecyclerView rv = (RecyclerView) findViewById(R.id.overviewRecycler);
+        // dump the cursor into the console for debug reasons
+        // Log.v("Cursor", DatabaseUtils.dumpCursorToString(cursor));
+
+        // MAKE IT PRETTY MAKE IT NICE
+        rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+        rv.setItemAnimator(new DefaultItemAnimator());
+        // initialise the adapter
+        Adapter_Overview adapter = new Adapter_Overview(cursor, this);
+        rv.setAdapter(adapter);
+        // and the layoutmanager
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
+        rv.setLayoutManager(mLayoutManager);
+        // when we touch the module entries something should happen
+        rv.addOnItemTouchListener(
+                new RecyclerItemClickListener(this, rv ,new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        // get all the data for the module from the cursor and open the module
+                        cursor.moveToPosition(position);
+                        String name = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_NAME));
+                        String code = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
+                        int compECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_COMP));
+                        int optcompECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_OPTCOMP));
+                        int ECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS));
+                        int ipECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_IPECTS));
+                        float grade = cursor.getFloat(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE));
+                        openModule(name, code, compECTS, optcompECTS, ECTS, ipECTS, grade);
+                    }
+
+                    @Override
+                    public void onLongItemClick(View view, int position) {
+                        //TODO
+                    }
+                }));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         // initalise the database and fetch all the module data
         SQLiteDatabase db = SQL_Database.getInstance(this).getReadableDatabase();
         String[] columns = {
@@ -49,6 +90,7 @@ public class Activity_Overview extends Activity_Base {
                 SQL_Database.MODULE_TABLE_NAME,
                 null, null, null,
                 null, null, SQL_Database.MODULE_COLUMN_ID);
+        db.close();
         //set up the grade
         // TODO format and set up grade
         ((TextView) findViewById(R.id.overviewUpperText))
@@ -98,9 +140,9 @@ public class Activity_Overview extends Activity_Base {
         pieSet.setDrawValues(false);
         // ALL THE COLOURS OF THE WIND. or at least of spam
         int[] col = {   getResources().getColor(R.color.markBachelor),
-                        getResources().getColor(R.color.markMarked),
-                        getResources().getColor(R.color.markInProgress),
-                        getResources().getColor(R.color.markCompleted)  };
+                getResources().getColor(R.color.markMarked),
+                getResources().getColor(R.color.markInProgress),
+                getResources().getColor(R.color.markCompleted)  };
         // apply the colours
         pieSet.setColors(col);
         // aaaand create the data from the set of entries
@@ -118,43 +160,12 @@ public class Activity_Overview extends Activity_Base {
         graph.setRotationEnabled(false);
         graph.setHighlightPerTapEnabled(false);
         graph.setEntryLabelColor(R.color.half_black);
+    }
 
-        /* The lower half is now */
-        RecyclerView rv = (RecyclerView) findViewById(R.id.overviewRecycler);
-        // dump the cursor into the console for debug reasons
-        // Log.v("Cursor", DatabaseUtils.dumpCursorToString(cursor));
-
-        // MAKE IT PRETTY MAKE IT NICE
-        rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
-        rv.setItemAnimator(new DefaultItemAnimator());
-        // initialise the adapter
-        Adapter_Overview adapter = new Adapter_Overview(cursor, this);
-        rv.setAdapter(adapter);
-        // and the layoutmanager
-        LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
-        rv.setLayoutManager(mLayoutManager);
-        // when we touch the module entries something should happen
-        rv.addOnItemTouchListener(
-                new RecyclerItemClickListener(this, rv ,new RecyclerItemClickListener.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        // get all the data for the module from the cursor and open the module
-                        cursor.moveToPosition(position);
-                        String name = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_NAME));
-                        String code = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
-                        int compECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_COMP));
-                        int optcompECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_OPTCOMP));
-                        int ECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS));
-                        int ipECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_IPECTS));
-                        float grade = cursor.getFloat(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE));
-                        openModule(name, code, compECTS, optcompECTS, ECTS, ipECTS, grade);
-                    }
-
-                    @Override
-                    public void onLongItemClick(View view, int position) {
-                        //TODO
-                    }
-                }));
+    @Override
+    public void onPause() {
+        super.onPause();
+        cursor.close();
     }
 
     /**
@@ -173,9 +184,6 @@ public class Activity_Overview extends Activity_Base {
         intent.putExtra("Module", code);
         intent.putExtra("compECTS", compECTS);
         intent.putExtra("optcompECTS", optcompECTS);
-        intent.putExtra("ECTS", ECTS);
-        intent.putExtra("ipECTS", ipECTS);
-        intent.putExtra("grade", grade);
         startActivity(intent);
     }
 }
