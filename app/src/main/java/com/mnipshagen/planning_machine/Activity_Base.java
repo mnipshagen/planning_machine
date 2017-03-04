@@ -57,6 +57,16 @@ public class Activity_Base extends AppCompatActivity{
         initNavigationDrawer();
     }
 
+    @Override
+    public void onBackPressed() {
+        if( this.getClass().getSimpleName().equals("Activity_Overview")) {
+            finish();
+        }
+        else {
+            init(1);
+        }
+    }
+
 //    @Override
 //    public void onBackPressed() {
 //        if(!this.getClass().getSimpleName().equals("Activity_Overview")){

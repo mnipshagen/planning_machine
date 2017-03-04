@@ -2,11 +2,13 @@ package com.mnipshagen.planning_machine;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -27,6 +29,8 @@ public class Activity_Overview extends Activity_Base {
     private final int BACHELOR_CREDITS = 180;
     private final int THESIS_CREDITS = 12;
     private Cursor cursor;
+    private SQLiteDatabase db;
+    private RecyclerView rv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +39,7 @@ public class Activity_Overview extends Activity_Base {
         setActionBarTitle(R.string.title_overview);
 
         /* The lower half is now */
-        RecyclerView rv = (RecyclerView) findViewById(R.id.overviewRecycler);
+        rv = (RecyclerView) findViewById(R.id.overviewRecycler);
         // dump the cursor into the console for debug reasons
         // Log.v("Cursor", DatabaseUtils.dumpCursorToString(cursor));
 
@@ -43,7 +47,7 @@ public class Activity_Overview extends Activity_Base {
         rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         rv.setItemAnimator(new DefaultItemAnimator());
         // initialise the adapter
-        Adapter_Overview adapter = new Adapter_Overview(cursor, this);
+        Adapter_Overview adapter = new Adapter_Overview(null, this);
         rv.setAdapter(adapter);
         // and the layoutmanager
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -59,10 +63,7 @@ public class Activity_Overview extends Activity_Base {
                         String code = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
                         int compECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_COMP));
                         int optcompECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_OPTCOMP));
-                        int ECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS));
-                        int ipECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_IPECTS));
-                        float grade = cursor.getFloat(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE));
-                        openModule(name, code, compECTS, optcompECTS, ECTS, ipECTS, grade);
+                        openModule(name, code, compECTS, optcompECTS);
                     }
 
                     @Override
@@ -76,7 +77,7 @@ public class Activity_Overview extends Activity_Base {
     public void onResume() {
         super.onResume();
         // initalise the database and fetch all the module data
-        SQLiteDatabase db = SQL_Database.getInstance(this).getReadableDatabase();
+        db = SQL_Database.getInstance(this).getReadableDatabase();
         String[] columns = {
                 SQL_Database.MODULE_COLUMN_ID,
                 SQL_Database.MODULE_COLUMN_NAME,
@@ -90,7 +91,7 @@ public class Activity_Overview extends Activity_Base {
                 SQL_Database.MODULE_TABLE_NAME,
                 null, null, null,
                 null, null, SQL_Database.MODULE_COLUMN_ID);
-        db.close();
+        ((Adapter_Overview) rv.getAdapter()).changeCursor(cursor);
         //set up the grade
         // TODO format and set up grade
         ((TextView) findViewById(R.id.overviewUpperText))
@@ -166,6 +167,7 @@ public class Activity_Overview extends Activity_Base {
     public void onPause() {
         super.onPause();
         cursor.close();
+        db.close();
     }
 
     /**
@@ -174,11 +176,8 @@ public class Activity_Overview extends Activity_Base {
      * @param code the po code of the module
      * @param compECTS compulsory credits of module
      * @param optcompECTS optional compulsory credits
-     * @param ECTS the already achieved credits
-     * @param ipECTS the in progress credits
-     * @param grade the grade of the module
      */
-    private void openModule(String name, String code, int compECTS, int optcompECTS, int ECTS, int ipECTS, float grade) {
+    private void openModule(String name, String code, int compECTS, int optcompECTS) {
         Intent intent = new Intent(this, Activity_Module.class);
         intent.putExtra("Name",name);
         intent.putExtra("Module", code);
