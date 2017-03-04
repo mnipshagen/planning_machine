@@ -20,6 +20,12 @@
         <item>Neurobiology</item>
         <item>Philosophy of Mind</item>
     </string-array>
+    <string-array name="course_interaction">
+        <item>Set Grade</item>
+        <item>Change State</item>
+        <item>Move to…</item>
+        <item>Remove</item>
+    </string-array>
     <string name="KI_title">Artificial Intelligence</string>
     <string name="CL_title">Computational Linguistics</string>
     <string name="INF_title">Computerscience</string>
