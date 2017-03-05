@@ -352,7 +352,7 @@ public class Adapter_Search extends RecyclerCursorAdapter<Adapter_Search.ViewHol
         termYear.setText(termandyear);
         String lectureInfo = "";
         String courseType = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_TYPE));
-        //courseType = courseType==null ? "":courseType;
+        courseType = courseType==null ? "":courseType;
         switch(courseType) {
             case "L":
                 lectureInfo = "Lecture in ";

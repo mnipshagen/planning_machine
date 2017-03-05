@@ -57,7 +57,7 @@
                     app:layout_constraintHorizontal_bias="0.52" />
 
                 <Switch
-                    android:text="Compulsory"
+                    android:text="@string/search_compulsory_switch"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
                     android:id="@+id/searchSwitchCompulsory"
@@ -81,11 +81,11 @@
         app:layout_anchor="@id/search_app_bar"
         app:layout_anchorGravity="bottom|end"/>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/searchRecycler"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="vertical"/>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/searchRecycler"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="vertical"/>
 
 </android.support.design.widget.CoordinatorLayout>
