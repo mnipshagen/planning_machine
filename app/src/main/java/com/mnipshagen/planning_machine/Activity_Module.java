@@ -141,7 +141,6 @@ public class Activity_Module extends Activity_Base {
                                                         dialog.cancel();
                                                     }
                                                 });
-
                                                 builder.show();
                                                 break;
 
@@ -173,7 +172,46 @@ public class Activity_Module extends Activity_Base {
                                                 break;
                                             // move to
                                             case 2:
-                                                //TODO
+                                                String fieldsSTR = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_FIELDS_STR));
+                                                String[] fields1 = fieldsSTR.split(",");
+                                                String[] codes1 = ModuleTools.getModuleCodes(fields1);
+                                                String currentMod = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_MODULE));
+                                                String[] fields = new String[fields1.length - 1];
+                                                final String[] codes = new String[codes1.length - 1];
+                                                for(int i = 0; i < fields1.length; i++){
+                                                    if (codes1[i].equals(currentMod)) {
+                                                        for(int j = 0; j < fields1.length; j++) {
+                                                            if (j==i) j++;
+                                                            fields[j] = fields1[j];
+                                                            codes[j] = codes1[j];
+                                                        }
+                                                        break;
+                                                    }
+                                                }
+                                                final int[] selected = {0};
+                                                builder = new AlertDialog.Builder(Activity_Module.this);
+                                                builder.setTitle("Move " + name)
+                                                        .setSingleChoiceItems(fields, 0, new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                selected[0] = which;
+                                                            }
+                                                        })
+                                                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                int sel = selected[0];
+                                                                String code = codes[sel];
+                                                                ModuleTools.moveCourse(code, id, Activity_Module.this);
+                                                            }
+                                                        })
+                                                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                dialog.cancel();
+                                                            }
+                                                        });
+                                                builder.show();
                                                 break;
                                             // remove
                                             case 3:
@@ -184,9 +222,6 @@ public class Activity_Module extends Activity_Base {
                                     }
                                 });
                         builder.show();
-                        ((Adapter_Module)rv.getAdapter()).getCursor().requery();
-                        rv.getAdapter().notifyDataSetChanged();
-                        initGraph();
                     }
                 }));
     }
@@ -273,6 +308,7 @@ public class Activity_Module extends Activity_Base {
         graph.setRotationEnabled(false);
         graph.setHighlightPerTapEnabled(false);
         graph.setEntryLabelColor(R.color.half_black);
+        graph.invalidate();
     }
 
     /**

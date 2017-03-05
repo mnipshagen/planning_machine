@@ -117,8 +117,9 @@ public class Adapter_Overview extends RecyclerCursorAdapter<Adapter_Overview.Vie
         if (mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)) == 0.0f) {
             grade = "--";
         } else {
-            grade = String.valueOf(mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)));
+            grade = String.format("%.1f",mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)));
         }
         graph.setCenterText(grade);
+        graph.setHoleRadius(75);
     }
 }

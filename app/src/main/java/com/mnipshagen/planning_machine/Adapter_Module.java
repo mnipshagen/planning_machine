@@ -109,18 +109,6 @@ public class Adapter_Module extends RecyclerCursorAdapter<Adapter_Module.ViewHol
             grade = String.format("%.1f",mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)));
         }
         graph.setCenterText(grade);
-
-        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-        viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                return false;
-            }
-        });
+        graph.setHoleRadius(75);
     }
 }

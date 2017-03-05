@@ -189,26 +189,7 @@ public class Adapter_Search extends RecyclerCursorAdapter<Adapter_Search.ViewHol
                                         SQL_Database.COURSE_COLUMN_SINGLE_FIELD;
                                 // we need to encode the module name to its corresponding code
                                 // using contains as there might be blanks and (PM) inside module name
-                                String module;
-                                if (modules[select].contains("ficial")) {
-                                    module = "KI";
-                                }else if (modules[select].contains("roinfo")) {
-                                    module = "NI";
-                                }else if (modules[select].contains("psych")) {
-                                    module = "KNP";
-                                }else if (modules[select].contains("lingu")) {
-                                    module = "CL";
-                                }else if (modules[select].contains("bio")) {
-                                    module = "NW";
-                                }else if (modules[select].contains("sophy")) {
-                                    module = "PHIL";
-                                }else if (modules[select].contains("ompute")) {
-                                    module = "INF";
-                                }else if (modules[select].contains("athem")) {
-                                    module = "MAT";
-                                }else {
-                                    module = "OPEN";
-                                }
+                                String module = ModuleTools.getModuleCode(modules[select]);
 
                                 db.execSQL("INSERT INTO " + SQL_Database.COURSES_TABLE_NAME +
                                         "(" + columns + ") SELECT " + columns + " FROM " +
