@@ -2,7 +2,9 @@ package com.mnipshagen.planning_machine;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +41,7 @@ public class Adapter_Module extends RecyclerCursorAdapter<Adapter_Module.ViewHol
 
     public Adapter_Module(Cursor cursor, Context context) {
         super(cursor);
+        Log.v("ModAdap", DatabaseUtils.dumpCursorToString(cursor));
         mContext = context;
     }
 
