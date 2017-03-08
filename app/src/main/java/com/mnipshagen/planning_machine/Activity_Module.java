@@ -1,5 +1,6 @@
 package com.mnipshagen.planning_machine;
 
+import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +19,8 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -30,6 +33,7 @@ import com.github.mikephil.charting.data.PieEntry;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -91,61 +95,105 @@ public class Activity_Module extends Activity_Base {
         rv.addOnItemTouchListener(
                 new RecyclerItemClickListener(this, rv ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
-                    public void onItemClick(View view, int position) {
-                        // TODO
-                        try {
-                            int oldpos = courses.getPosition();
-                            courses.moveToPosition(position);
-                            final long id = courses.getLong(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ID));
-                            courses.moveToPosition(oldpos);
-                            Cursor c = db.query(SQL_Database.COURSES_TABLE_NAME, null, SQL_Database.COURSES_COLUMN_ID + "=" + id, null, null, null, null);
-                            c.moveToFirst();
-                            View course = getLayoutInflater().inflate(R.layout.course, (ViewGroup) view.getParent(), false);
-                            TextView name = (TextView) course.findViewById(R.id.course_name);
-                            name.setText(c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE)));
-                            TextView grade = (TextView) course.findViewById(R.id.course_grade);
-                            grade.setText(String.format("%.2f", c.getDouble(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE))));
-                            TextView ects = (TextView) course.findViewById(R.id.course_ects);
-                            ects.setText(c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ECTS)));
-                            TextView typein = (TextView) course.findViewById(R.id.course_typein);
-                            String tmp = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TYPE));
-                            tmp = tmp.concat(" in " + c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_MODULE)));
-                            typein.setText(tmp);
-                            ImageView state = (ImageView) course.findViewById(R.id.course_state);
-                            int st = c.getInt(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_STATE));
-                            switch (st) {
-                                case 0:
-                                    state.setImageResource(R.color.markMarked);
-                                    break;
-                                case 1:
-                                    state.setImageResource(R.color.markInProgress);
-                                    break;
-                                case 2:
-                                    state.setImageResource(R.color.markCompleted);
-                                    break;
-                            }
-                            String movable = " Movable to:\n";
-                            movable = movable.concat(c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_FIELDS_STR)));
-                            TextView move = (TextView) course.findViewById(R.id.course_moveto);
-                            move.setText(movable);
-                            TextView desc = (TextView) course.findViewById(R.id.course_description);
-                            desc.setText(c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE_DESC)));
-                            TextView info = (TextView) course.findViewById(R.id.course_infodump);
-                            info.setText("DUMP THE INFO");
-                            c.close();
+                    public void onItemClick(View view, final int position) {
+                        final Dialog dialog = new Dialog(Activity_Module.this);
+                        dialog.setContentView(R.layout.course);
 
-                            AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
-                            builder.setView(course)
-                                    .setNeutralButton("Dismiss", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                        }
-                                    })
-                                    .show();
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        int oldpos = courses.getPosition();
+                        courses.moveToPosition(position);
+                        final long id = courses.getLong(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ID));
+                        courses.moveToPosition(oldpos);
+                        Cursor c = db.query(SQL_Database.COURSES_TABLE_NAME, null, SQL_Database.COURSES_COLUMN_ID + "=" + id, null, null, null, null);
+                        c.moveToFirst();
+                        TextView course_name = (TextView) dialog.findViewById(R.id.course_name);
+                        final String c_name = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE));
+                        course_name.setText(c_name);
+                        final TextView grade = (TextView) dialog.findViewById(R.id.course_grade);
+                        grade.setText(String.format("%.2f", c.getDouble(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE))));
+                        grade.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Fragment_Dialogs.changeGrade(c_name, id, Activity_Module.this);
+                            }
+                        });
+                        TextView ects = (TextView) dialog.findViewById(R.id.course_ects);
+                        String credit = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ECTS)) + " ECTS";
+                        ects.setText(credit);
+                        TextView typein = (TextView) dialog.findViewById(R.id.course_typein);
+                        String tmp = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TYPE));
+                        tmp = ModuleTools.courseTypeConv(tmp);
+                        String tmp2 = ModuleTools.codeToName(c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_MODULE)), Activity_Module.this);
+                        tmp = tmp.concat(" in " + tmp2);
+                        typein.setText(tmp);
+                        ImageView state = (ImageView) dialog.findViewById(R.id.course_state);
+                        int st = c.getInt(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_STATE));
+                        switch (st) {
+                            case 0:
+                                state.setImageResource(R.color.markMarked);
+                                break;
+                            case 1:
+                                state.setImageResource(R.color.markInProgress);
+                                break;
+                            case 2:
+                                state.setImageResource(R.color.markCompleted);
+                                break;
                         }
+                        TextView pm = (TextView) dialog.findViewById(R.id.course_pm);
+                        if(c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_INFIELD_TYPE)).equals("PM")) {
+                            pm.setText("Course is compulsory!");
+                        } else {
+                            pm.setText("Course is not Compulsory");
+                        }
+                        TextView term = (TextView) dialog.findViewById(R.id.course_term);
+                        String year = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_YEAR));
+                        String t = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TERM));
+                        t = t.concat(" " + year);
+                        term.setText(t);
+
+                        Button but_move = (Button) dialog.findViewById(R.id.course_butt_move);
+                        String movable = "Movable to:\n";
+                        String[] possibleCourses = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_FIELDS_STR)).concat(", Open Studies").split(",");
+                        List<String> possibleCodes = new ArrayList<>(Arrays.asList(ModuleTools.getModuleCodes(possibleCourses)));
+                        possibleCodes.remove(module_code);
+                        String[] modNames = ModuleTools.codesToNames(possibleCodes, Activity_Module.this);
+                        StringBuilder sbuilder = new StringBuilder();
+                        for (String s : modNames) {
+                            sbuilder.append(s);
+                            sbuilder.append(", ");
+                        }
+                        sbuilder.delete(sbuilder.lastIndexOf(","),sbuilder.length());
+                        movable = movable.concat(sbuilder.toString());
+                        TextView move = (TextView) dialog.findViewById(R.id.course_moveto);
+                        move.setText(movable);
+                        final String movable_button = movable;
+                        but_move.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                String[] entries = movable_button.substring(movable_button.indexOf(":")+2).split(",");
+                                Fragment_Dialogs.moveCourse(c_name, entries, id, Activity_Module.this);
+                                rv.getAdapter().notifyItemRemoved(position);
+                                dialog.dismiss();
+                            }
+                        });
+
+                        TextView desc = (TextView) dialog.findViewById(R.id.course_description);
+                        String description = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE_DESC));
+                        description = description.length()==0? "No description available" : description;
+                        desc.setText(description);
+                        TextView info = (TextView) dialog.findViewById(R.id.course_infodump);
+                        String infodump = "Taught by " + c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TEACHERS_STR)) + "\n" +
+                                            "StudIP code: " + c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_CODE)) + "\n" +
+                                            "IKW code: " + c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE_ID));
+                        info.setText(infodump);
+                        Button dismiss = (Button) dialog.findViewById(R.id.course_butt_dismiss);
+                        dismiss.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                dialog.dismiss();
+                            }
+                        });
+                        c.close();
+                        dialog.show();
                     }
 
                     @Override
@@ -154,7 +202,6 @@ public class Activity_Module extends Activity_Base {
                         courses.moveToPosition(position);
                         final String name = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE));
                         final long id = courses.getLong(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ID));
-                        final String currentMod = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_MODULE));
                         final String fieldsSTR = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_FIELDS_STR));
                         courses.moveToPosition(oldpos);
                         AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
@@ -166,44 +213,8 @@ public class Activity_Module extends Activity_Base {
                                         switch (which) {
                                             // set grade
                                             case 0:
-                                                builder = new AlertDialog.Builder(Activity_Module.this);
-                                                builder.setTitle("Set Grade");
-                                                final EditText input = new EditText(Activity_Module.this);
-                                                input.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                                                builder.setView(input);
-                                                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        if (input.getText() != null){
-                                                            double grade = 0.0;
-                                                            boolean allowed = true;
-                                                            try {
-                                                                grade = Double.parseDouble(input.getText().toString().replace(',', '.'));
-                                                                if (!(0.5 < grade) || !(grade <= 4.)) {
-                                                                    Toast.makeText(Activity_Module.this, "Not a grade!", Toast.LENGTH_SHORT).show();
-                                                                    allowed = false;
-                                                                }
-                                                            } catch (Exception e) {
-                                                                Toast.makeText(Activity_Module.this, "That was not a recognisable number!", Toast.LENGTH_SHORT).show();
-                                                                allowed = false;
-                                                            }
-                                                            if (allowed) {
-                                                                ModuleTools.setCourseGrade(id, grade, Activity_Module.this);
-                                                            }
-                                                        } else {
-                                                            Toast.makeText(Activity_Module.this, "No input detected.", Toast.LENGTH_SHORT).show();
-                                                        }
-                                                    }
-                                                });
-                                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        dialog.cancel();
-                                                    }
-                                                });
-                                                builder.show();
-                                                break;
-
+                                               Fragment_Dialogs.changeGrade(name, id, Activity_Module.this);
+                                               break;
                                             // change state
                                             case 1:
                                                 builder = new AlertDialog.Builder(Activity_Module.this);
@@ -231,60 +242,12 @@ public class Activity_Module extends Activity_Base {
                                                 break;
                                             // move to
                                             case 2:
-                                                String[] fields1 = fieldsSTR.split(",");
-                                                String[] codes1 = ModuleTools.getModuleCodes(fields1);
-                                                String[] fields = new String[fields1.length - 1];
-                                                if (fields.length == 0) {
-                                                    TextView info = new TextView(Activity_Module.this);
-                                                    info.setText("This course cannot be moved.");
-                                                    builder = new AlertDialog.Builder(Activity_Module.this);
-                                                    builder.setTitle("Move " + name)
-                                                            .setView(info)
-                                                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                                                @Override
-                                                                public void onClick(DialogInterface dialog, int which) {
-                                                                    dialog.dismiss();
-                                                                }
-                                                            })
-                                                            .show();
-                                                } else {
-                                                    final String[] codes = new String[codes1.length - 1];
-                                                    for (int i = 0; i < fields1.length; i++) {
-                                                        if (codes1[i].equals(currentMod)) {
-                                                            for (int j = 0; j < fields1.length; j++) {
-                                                                if (j != i) {
-                                                                    fields[j] = fields1[j];
-                                                                    codes[j] = codes1[j];
-                                                                }
-                                                            }
-                                                            break;
-                                                        }
-                                                    }
-                                                    final int[] selected = {0};
-                                                    builder = new AlertDialog.Builder(Activity_Module.this);
-                                                    builder.setTitle("Move " + name)
-                                                            .setSingleChoiceItems(fields, 0, new DialogInterface.OnClickListener() {
-                                                                @Override
-                                                                public void onClick(DialogInterface dialog, int which) {
-                                                                    selected[0] = which;
-                                                                }
-                                                            })
-                                                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                                                @Override
-                                                                public void onClick(DialogInterface dialog, int which) {
-                                                                    int sel = selected[0];
-                                                                    String code = codes[sel];
-                                                                    ModuleTools.moveCourse(code, id, Activity_Module.this);
-                                                                }
-                                                            })
-                                                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                                                @Override
-                                                                public void onClick(DialogInterface dialog, int which) {
-                                                                    dialog.cancel();
-                                                                }
-                                                            })
-                                                            .show();
-                                                }
+                                                List<String> codes = new ArrayList<>(Arrays.asList(ModuleTools.getModuleCodes(fieldsSTR.split(","))));
+                                                codes.add("OPEN");
+                                                codes.remove(module_code);
+                                                String[] fields = ModuleTools.codesToNames(codes, Activity_Module.this);
+
+                                                Fragment_Dialogs.moveCourse(name, fields, id, Activity_Module.this);
                                                 break;
                                             // remove
                                             case 3:
