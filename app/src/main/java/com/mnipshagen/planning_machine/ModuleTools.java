@@ -2,8 +2,11 @@ package com.mnipshagen.planning_machine;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+
+import java.util.List;
 
 /**
  * A class to handle several interactions in modules and c.
@@ -32,8 +35,12 @@ public class ModuleTools {
         cv.put(col_state, state);
 
         SQLiteDatabase db = SQL_Database.getInstance(context).getWritableDatabase();
+        Cursor c = db.query(table, new String[]{col_mod}, col_id + "=" + id, null, null, null, null);
+        c.moveToFirst();
+        String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
+        c.close();
         db.update(table,cv, col_id + "=" + id, null);
-        db.close();
+        refreshModule(m_code, context);
     }
 
     public static void setCourseGrade(long id, double grade, Context context){
@@ -42,8 +49,37 @@ public class ModuleTools {
 
     public static void removeCourse(long id, Context context) {
         SQLiteDatabase db = SQL_Database.getInstance(context).getWritableDatabase();
+        Cursor c = db.query(table, new String[]{col_mod}, col_id + "=" + id, null, null, null, null);
+        c.moveToFirst();
+        String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
+        c.close();
         db.delete(table, col_id + "=" + id , null);
-        db.close();
+        refreshModule(m_code, context);
+    }
+
+    public static String courseTypeConv(String type) {
+        String converted;
+        switch (type) {
+            case "L":
+                converted = "Lecture"; break;
+            case "Lecture":
+                converted = "L"; break;
+            case "B":
+                converted = "Blockcourse"; break;
+            case "Blockcourse":
+                converted = "B"; break;
+            case "S":
+                converted = "Seminar"; break;
+            case "Seminar":
+                converted = "S"; break;
+            case "C":
+                converted = "Colloquium"; break;
+            case "Colloquium":
+                converted = "C"; break;
+            default:
+                converted = "Unknown (" + type +")"; break;
+        }
+        return converted;
     }
 
     public static float[] refreshModule(String module_code, Context context){
@@ -90,7 +126,15 @@ public class ModuleTools {
 
         return new float[] {achv_credits, ip_credits, grade};
     }
-    
+
+    public static String[] getModuleCodes(String[] m) {
+        String[] codes = new String[m.length];
+        for(int i = 0; i < m.length; i++) {
+            codes[i] = getModuleCode(m[i]);
+        }
+        return codes;
+    }
+
     public static String getModuleCode(String m) {
         String code;
         if (m.contains("ficial")) {
@@ -101,7 +145,7 @@ public class ModuleTools {
             code = "KNP";
         }else if (m.contains("lingu")) {
             code = "CL";
-        }else if (m.contains("bio")) {
+        }else if (m.contains("bio") || m.contains("rosci")) {
             code = "NW";
         }else if (m.contains("sophy")) {
             code = "PHIL";
@@ -114,19 +158,41 @@ public class ModuleTools {
         }
         return code;
     }
-    
-    public static String[] getModuleCodes(String[] m) {
-        String[] codes = new String[m.length];
-        for(int i = 0; i < m.length; i++) {
-            codes[i] = getModuleCode(m[i]);
+
+    public static String[] codesToNames(List<String> codes, Context context) {
+        String[] names = new String[codes.size()];
+        for(int i = 0; i < codes.size(); i++){
+            names[i] = codeToName(codes.get(i), context);
         }
-        return codes;
+        return names;
+    }
+
+    public static String codeToName(String code, Context context){
+        Resources res = context.getResources();
+        switch(code){
+            case "KI": return res.getString(R.string.KI_title);
+            case "NI": return res.getString(R.string.NI_title);
+            case "KNP": return res.getString(R.string.KNP_title);
+            case "CL": return res.getString(R.string.CL_title);
+            case "NW": return res.getString(R.string.NW_title);
+            case "PHIL": return res.getString(R.string.PHIL_title);
+            case "INF": return res.getString(R.string.INF_title);
+            case "MAT": return res.getString(R.string.MAT_title);
+            case "OPEN": return "Open Studies";
+            default: return "Unknown ModuleCode";
+        }
     }
 
     public static void moveCourse(String code, long id, Context context) {
         SQLiteDatabase db = SQL_Database.getInstance(context).getWritableDatabase();
+        Cursor c = db.query(table, new String[]{col_mod}, col_id + "=" + id, null, null, null, null);
+        c.moveToFirst();
+        String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
+        c.close();
         ContentValues cv = new ContentValues();
         cv.put(col_mod, code);
         db.update(table, cv, col_id + "=" + id, null);
+        refreshModule(m_code, context);
+        refreshModule(code, context);
     }
 }
