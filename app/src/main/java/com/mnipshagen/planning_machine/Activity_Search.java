@@ -15,6 +15,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 
+import com.mnipshagen.planning_machine.DataProviding.Async_Search;
+import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+
 /**
  * Created by nipsh on 19/02/2017.
  */

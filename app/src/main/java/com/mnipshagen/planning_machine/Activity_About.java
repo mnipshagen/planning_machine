@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+
 /**
  * The Activity corresponding to the 'About' drawer option.
  * Of no use so far. Only for test & debug purposes.

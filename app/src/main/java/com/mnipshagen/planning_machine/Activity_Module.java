@@ -1,36 +1,30 @@
 package com.mnipshagen.planning_machine;
 
 import android.app.Dialog;
-import android.content.ContentValues;
-import android.content.Context;
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.InputType;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-
-import org.w3c.dom.Text;
+import com.mnipshagen.planning_machine.DataProviding.DataProvider;
+import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,13 +36,14 @@ import java.util.List;
  * corresponding module code
  */
 
-public class Activity_Module extends Activity_Base {
+public class Activity_Module extends Activity_Base implements LoaderManager.LoaderCallbacks<Cursor> {
     //TODO use cursor loader
 
     // holding a database reference
-    private SQLiteDatabase db;
+    private ContentResolver mCR;
     // the cursor which holds the course data
     private Cursor courses;
+    private Adapter_Module adapter;
     // the module code of the active module
     private String module_code;
 
@@ -75,18 +70,23 @@ public class Activity_Module extends Activity_Base {
         // set the name as the title of the activity
         setActionBarTitle(name);
 
+
+        initGraph();
         /* And now to the lower part! */
         // find recycler view
         final RecyclerView rv = (RecyclerView) findViewById(R.id.moduleRecycler);
         // initialise the cursor if it holds no data
         if(courses == null) {
-            initCursor();
+            getSupportLoaderManager().initLoader(0, null, this);
+        }
+        if (mCR == null) {
+            mCR = getContentResolver();
         }
         // make it pretty!
         rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         rv.setItemAnimator(new DefaultItemAnimator());
         // the adapter to handle the data
-        Adapter_Module adapter = new Adapter_Module(courses,this);
+        adapter = new Adapter_Module(courses,this);
         rv.setAdapter(adapter);
         // and now display it!
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -96,6 +96,7 @@ public class Activity_Module extends Activity_Base {
                 new RecyclerItemClickListener(this, rv ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, final int position) {
+                        //TODO REMOVE cursor. USE cursor loader
                         final Dialog dialog = new Dialog(Activity_Module.this);
                         dialog.setContentView(R.layout.course);
 
@@ -103,7 +104,7 @@ public class Activity_Module extends Activity_Base {
                         courses.moveToPosition(position);
                         final long id = courses.getLong(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ID));
                         courses.moveToPosition(oldpos);
-                        Cursor c = db.query(SQL_Database.COURSES_TABLE_NAME, null, SQL_Database.COURSES_COLUMN_ID + "=" + id, null, null, null, null);
+                        final Cursor c = mCR.query(DataProvider.COURSES_DB_URI, null, SQL_Database.COURSES_COLUMN_ID + "=" + id, null, null);
                         c.moveToFirst();
                         TextView course_name = (TextView) dialog.findViewById(R.id.course_name);
                         final String c_name = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE));
@@ -114,6 +115,8 @@ public class Activity_Module extends Activity_Base {
                             @Override
                             public void onClick(View v) {
                                 Fragment_Dialogs.changeGrade(c_name, id, Activity_Module.this);
+                                c.requery();
+                                grade.setText(String.format("%.2f", c.getDouble(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE))));
                             }
                         });
                         TextView ects = (TextView) dialog.findViewById(R.id.course_ects);
@@ -192,7 +195,12 @@ public class Activity_Module extends Activity_Base {
                                 dialog.dismiss();
                             }
                         });
-                        c.close();
+                        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                c.close();
+                            }
+                        });
                         dialog.show();
                     }
 
@@ -262,23 +270,9 @@ public class Activity_Module extends Activity_Base {
                 }));
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // when we start the activity from cache, reinitialise cursor
-        initCursor();
-        initGraph();
-    }
-
-    @Override
-    protected void onPause() {
-        // when the activity leaves the active view, close the cursor to prevent memory leak
-        courses.close();
-        db.close();
-        super.onPause();
-    }
 
     private void initGraph() {
+        //TODO include listener for adapter
         float[] res = ModuleTools.refreshModule(module_code, this);
         int achv_credits = (int) res[0];
         int ip_credits = (int) res[1];
@@ -342,12 +336,8 @@ public class Activity_Module extends Activity_Base {
         graph.invalidate();
     }
 
-    /**
-     * initialise the cursor to fetch and hold all courses of the module
-     */
-    private void initCursor() {
-        db = SQL_Database.getInstance(this).getWritableDatabase();
-
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String[] courseData = {
                 SQL_Database.COURSES_COLUMN_ID,
                 SQL_Database.COURSES_COLUMN_COURSE,
@@ -358,7 +348,21 @@ public class Activity_Module extends Activity_Base {
                 SQL_Database.COURSE_COLUMN_FIELDS_STR
         };
         String courseSelection = SQL_Database.COURSES_COLUMN_MODULE + " = " + "'" + module_code + "'";
+        Loader<Cursor> loader = new CursorLoader(this, DataProvider.COURSES_DB_URI, courseData, courseSelection, null, SQL_Database.COURSES_COLUMN_STATE);
 
-        courses = db.query(SQL_Database.COURSES_TABLE_NAME, courseData, courseSelection, null, null, null, SQL_Database.COURSES_COLUMN_STATE);
+        return loader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        courses = data;
+        adapter.changeCursor(data);
+        initGraph();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        if(courses != null) courses.close();
+        adapter.changeCursor(null);
     }
 }

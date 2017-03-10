@@ -1,9 +1,11 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.DataProviding;
 
 import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+
+import com.mnipshagen.planning_machine.Activity_Search;
 
 import java.lang.ref.WeakReference;
 

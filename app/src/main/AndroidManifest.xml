@@ -23,8 +23,8 @@
         <activity android:name=".Activity_About" />
 
         <provider
-            android:authorities="com.mnipshagen.planning_machine.CourseProvider"
-            android:name="com.mnipshagen.planning_machine.CourseProvider"
+            android:authorities="com.mnipshagen.planning_machine.DataProviding.DataProvider"
+            android:name="com.mnipshagen.planning_machine.DataProviding.DataProvider"
             android:exported="false"
             android:multiprocess="true" />
     </application>

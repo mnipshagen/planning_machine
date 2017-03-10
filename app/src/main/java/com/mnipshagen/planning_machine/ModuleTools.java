@@ -1,10 +1,15 @@
 package com.mnipshagen.planning_machine;
 
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+
+import com.mnipshagen.planning_machine.DataProviding.DataProvider;
+import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 
 import java.util.List;
 
@@ -14,7 +19,8 @@ import java.util.List;
 
 public class ModuleTools {
 
-    private static final String table = SQL_Database.COURSES_TABLE_NAME;
+    private static final Uri courses_table = DataProvider.COURSES_DB_URI;
+    private static final Uri module_table = DataProvider.MODULE_DB_URI;
     private static final String col_state = SQL_Database.COURSES_COLUMN_STATE;
     private static final String col_id = SQL_Database.COURSES_COLUMN_ID;
     private static final String col_grade = SQL_Database.COURSES_COLUMN_GRADE;
@@ -34,12 +40,12 @@ public class ModuleTools {
         cv.put(col_grade, grade);
         cv.put(col_state, state);
 
-        SQLiteDatabase db = SQL_Database.getInstance(context).getWritableDatabase();
-        Cursor c = db.query(table, new String[]{col_mod}, col_id + "=" + id, null, null, null, null);
+        ContentResolver mCR = context.getContentResolver();
+        Cursor c = mCR.query(courses_table, new String[]{col_mod}, col_id + "=" + id, null, null);
         c.moveToFirst();
         String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
         c.close();
-        db.update(table,cv, col_id + "=" + id, null);
+        mCR.update(courses_table, cv, col_id + "=" + id, null);
         refreshModule(m_code, context);
     }
 
@@ -48,12 +54,12 @@ public class ModuleTools {
     }
 
     public static void removeCourse(long id, Context context) {
-        SQLiteDatabase db = SQL_Database.getInstance(context).getWritableDatabase();
-        Cursor c = db.query(table, new String[]{col_mod}, col_id + "=" + id, null, null, null, null);
+        ContentResolver mCR = context.getContentResolver();
+        Cursor c = mCR.query(courses_table, new String[]{col_mod}, col_id + "=" + id, null, null);
         c.moveToFirst();
         String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
         c.close();
-        db.delete(table, col_id + "=" + id , null);
+        mCR.delete(courses_table, col_id + "=" + id , null);
         refreshModule(m_code, context);
     }
 
@@ -83,7 +89,7 @@ public class ModuleTools {
     }
 
     public static float[] refreshModule(String module_code, Context context){
-        SQLiteDatabase db = SQL_Database.getInstance(context).getWritableDatabase();
+        ContentResolver mCR = context.getContentResolver();
 
         String[] courseData = {
                 SQL_Database.COURSES_COLUMN_ID,
@@ -94,7 +100,7 @@ public class ModuleTools {
         };
         String courseSelection = SQL_Database.COURSES_COLUMN_MODULE + " = " + "'" + module_code + "'";
 
-        Cursor c = db.query(SQL_Database.COURSES_TABLE_NAME, courseData, courseSelection, null, null, null, SQL_Database.COURSES_COLUMN_STATE);
+        Cursor c = mCR.query(courses_table, courseData, courseSelection, null, SQL_Database.COURSES_COLUMN_STATE);
 
         int achv_credits = 0;
         int ip_credits = 0;
@@ -120,7 +126,7 @@ public class ModuleTools {
         values.put(SQL_Database.MODULE_COLUMN_ECTS, achv_credits);
         values.put(SQL_Database.MODULE_COLUMN_IPECTS, ip_credits);
         values.put(SQL_Database.MODULE_COLUMN_GRADE, grade);
-        db.update(SQL_Database.MODULE_TABLE_NAME, values, SQL_Database.MODULE_COLUMN_CODE + " = '" + module_code + "'", null);
+        mCR.update(module_table, values, SQL_Database.MODULE_COLUMN_CODE + " = '" + module_code + "'", null);
 
         c.close();
 
@@ -184,14 +190,14 @@ public class ModuleTools {
     }
 
     public static void moveCourse(String code, long id, Context context) {
-        SQLiteDatabase db = SQL_Database.getInstance(context).getWritableDatabase();
-        Cursor c = db.query(table, new String[]{col_mod}, col_id + "=" + id, null, null, null, null);
+        ContentResolver mCR = context.getContentResolver();
+        Cursor c = mCR.query(courses_table, new String[]{col_mod}, col_id + "=" + id, null, null);
         c.moveToFirst();
         String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
         c.close();
         ContentValues cv = new ContentValues();
         cv.put(col_mod, code);
-        db.update(table, cv, col_id + "=" + id, null);
+        mCR.update(courses_table, cv, col_id + "=" + id, null);
         refreshModule(m_code, context);
         refreshModule(code, context);
     }
