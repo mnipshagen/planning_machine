@@ -1,7 +1,6 @@
 package com.mnipshagen.planning_machine;
 
 import android.app.Dialog;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -15,6 +14,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,8 +30,6 @@ import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 import com.mnipshagen.planning_machine.Dialogs.addUnlistedCourseDialog;
 import com.mnipshagen.planning_machine.Dialogs.setGradeDialog;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +41,7 @@ import java.util.List;
  */
 
 public class Activity_Module extends Activity_Base implements LoaderManager.LoaderCallbacks<Cursor>, setGradeDialog.GradeDialogListener{
-    //TODO use cursor loader
+    private String LOGTAG = "ModActiv";
 
     // the cursor which holds the course data
     private Cursor courses;
@@ -173,7 +171,6 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         FloatingActionButton fab_setSigniicane = (FloatingActionButton) findViewById(R.id.moduleSetSignificance);
 
 
-        initGraph();
         /* And now to the lower part! */
         // find recycler view
         final RecyclerView rv = (RecyclerView) findViewById(R.id.moduleRecycler);
@@ -287,6 +284,43 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                 dialog.dismiss();
                             }
                         });
+                        Button but_remove = (Button) dialog.findViewById(R.id.course_butt_remove);
+                        but_remove.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                ModuleTools.removeCourse(id, Activity_Module.this);
+                                dialog.dismiss();
+                                Snackbar.make(findViewById(R.id.content), name + " was removed.", Snackbar.LENGTH_LONG);
+                            }
+                        });
+                        Button but_changeState = (Button) dialog.findViewById(R.id.course_butt_changeState);
+                        but_changeState.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
+                                builder.setTitle("Set state of " + name)
+                                        .setItems(R.array.statelist, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                switch(which) {
+                                                    // passed
+                                                    case 0:
+                                                        ModuleTools.setCoursePassed(id, Activity_Module.this);
+                                                        break;
+                                                    // in progress
+                                                    case 1:
+                                                        ModuleTools.setCourseInProgress(id, Activity_Module.this);
+                                                        break;
+                                                    // marked
+                                                    case 2:
+                                                        ModuleTools.setCourseMarked(id, Activity_Module.this);
+                                                        break;
+                                                }
+                                            }
+                                        });
+                                builder.show();
+                            }
+                        });
 
                         TextView desc = (TextView) dialog.findViewById(R.id.course_description);
                         String description = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE_DESC));
@@ -369,7 +403,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                             // remove
                                             case 3:
                                                 ModuleTools.removeCourse(id, Activity_Module.this);
-                                                Snackbar.make(findViewById(R.id.moduleRecycler), name + " was removed.", Snackbar.LENGTH_LONG);
+                                                Snackbar.make(findViewById(R.id.content), name + " was removed.", Snackbar.LENGTH_LONG);
                                                 break;
                                         }
                                     }
@@ -382,9 +416,47 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
 
     private void initGraph() {
         float[] res = ModuleTools.refreshModule(module_code, this);
-        int achv_credits = (int) res[0];
-        int ip_credits = (int) res[1];
+        int overall_achv = (int) res[0];
+        int overall_ip = (int) res[1];
         float grade = res[2];
+
+        int[] res2 = ModuleTools.getCompAchvEcts(module_code, this);
+        int comp_achv = res2[0];
+        int comp_ip = res2[1];
+
+        int opt_achv = overall_achv - comp_achv;
+        int opt_ip = overall_ip - comp_ip;
+
+        boolean compComplete = false;
+        boolean compInProg = false;
+        boolean optComplete = false;
+        boolean optInProg = false;
+
+        if (comp_achv >= comp_credits){
+            compComplete = true;
+            opt_ip += comp_ip;
+            comp_ip = 0;
+            opt_achv += comp_credits - comp_achv;
+            comp_achv = comp_credits;
+        } else if (comp_achv  + comp_ip > comp_credits) {
+            compInProg = true;
+            optInProg = true;
+            opt_ip += comp_ip - (comp_credits - comp_achv);
+            comp_ip = comp_credits - comp_achv;
+        } else if (comp_achv > 0 || comp_ip > 0) {
+            compInProg = true;
+        }
+        // TODO do not ignore overflowing credits
+        int optcomp_only = optcomp_credits - comp_credits;
+        if (opt_achv >= optcomp_only) {
+            optComplete = true;
+            opt_achv = optcomp_only;
+        } else if (opt_achv + opt_ip > optcomp_only) {
+            optInProg = true;
+            opt_ip = optcomp_only - opt_achv;
+        } else if (opt_achv >0 || opt_ip >0) {
+            optInProg = true;
+        }
 
          /* Setting up the PieChart */
         // the list holds all entries of the chart
@@ -392,32 +464,103 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         // will hold the colours to use
         int[] col;
 
-        // if in progress + achieved credits are not enough to fulfill the compulsory part
-        // the missing credits until compulsory is fulfilled are displayed in orange
-        if(ip_credits + achv_credits < comp_credits) {
-            int todo_ects = optcomp_credits-comp_credits;
-            entries.add(new PieEntry(todo_ects, String.valueOf(todo_ects)));
-            int todo_comp = comp_credits - achv_credits - ip_credits;
-            entries.add(new PieEntry(todo_comp, String.valueOf(todo_comp)));
+        if(compComplete && optComplete) {
+            Log.v(LOGTAG, "Graph says: This course is completed.");
+            col = new int[] {   getResources().getColor(R.color.markCompleted)  };
+            entries.add(new PieEntry(optcomp_credits, String.valueOf(optcomp_credits)));
+        } else if (compComplete && optInProg) {
+            Log.v(LOGTAG, "Graph says: This course is in progress completed");
             col = new int[] {
                     getResources().getColor(R.color.markMarked),
+                    getResources().getColor(R.color.markInProgress),
+                    getResources().getColor(R.color.markCompleted)
+            };
+            int todo =  optcomp_credits - overall_achv - overall_ip;
+            entries.add(new PieEntry(todo, String.valueOf(todo)));
+            entries.add(new PieEntry(overall_ip, String.valueOf(overall_ip)));
+            entries.add(new PieEntry(overall_achv, String.valueOf(overall_achv)));
+        } else if(compComplete) {
+            Log.v(LOGTAG, "Graph says: This course is satisfied");
+            col = new int[] {
+                    getResources().getColor(R.color.markMarked),
+                    getResources().getColor(R.color.markInProgress),
+                    getResources().getColor(R.color.markCompleted)
+            };
+            entries.add(new PieEntry(optcomp_only, String.valueOf(optcomp_only)));
+            entries.add(new PieEntry(comp_ip, String.valueOf(comp_ip)));
+            entries.add(new PieEntry(comp_achv, String.valueOf(comp_achv)));
+        } else if (compInProg && optComplete) {
+            Log.v(LOGTAG, "Graph says: This course is completed, but on the wrong side.");
+            col = new int[] {
+                    getResources().getColor(R.color.markCompleted),
                     getResources().getColor(R.color.markBachelor),
                     getResources().getColor(R.color.markInProgress),
-                    getResources().getColor(R.color.markCompleted)  };
-        }
-        // if compulsory credits are achieved, then we have no need for the orange part
-        // and the ects still to do are only depending on the achieved and in progress credits
-        else {
-            int todo_ects = optcomp_credits - achv_credits - ip_credits;
-            entries.add(new PieEntry(todo_ects, String.valueOf(todo_ects)));
+                    getResources().getColor(R.color.markCompleted)
+            };
+            entries.add(new PieEntry(opt_achv, String.valueOf(opt_achv)));
+            int todo = comp_credits - comp_achv - comp_ip;
+            entries.add(new PieEntry(todo, String.valueOf(todo)));
+            entries.add(new PieEntry(comp_ip, String.valueOf(comp_ip)));
+            entries.add(new PieEntry(comp_achv, String.valueOf(comp_achv)));
+        } else if (compInProg && optInProg) {
+            Log.v(LOGTAG, "Graph says: This course is in progress twice.");
             col = new int[] {
                     getResources().getColor(R.color.markMarked),
                     getResources().getColor(R.color.markInProgress),
-                    getResources().getColor(R.color.markCompleted)  };
+                    getResources().getColor(R.color.markCompleted),
+                    getResources().getColor(R.color.markBachelor),
+                    getResources().getColor(R.color.markInProgress),
+                    getResources().getColor(R.color.markCompleted)
+            };
+            int todo = optcomp_only - opt_achv - opt_ip;
+            entries.add(new PieEntry(todo, String.valueOf(todo)));
+            entries.add(new PieEntry(opt_ip, String.valueOf(opt_ip)));
+            entries.add(new PieEntry(opt_achv, String.valueOf(opt_achv)));
+            int compTodo = comp_credits - comp_achv - comp_ip;
+            entries.add(new PieEntry(compTodo, String.valueOf(compTodo)));
+            entries.add(new PieEntry(comp_ip, String.valueOf(comp_ip)));
+            entries.add(new PieEntry(comp_achv, String.valueOf(comp_achv)));
+        } else if (compInProg) {
+            Log.v(LOGTAG, "Graph says: This course is in little progress");
+            col = new int[] {
+                    getResources().getColor(R.color.markMarked),
+                    getResources().getColor(R.color.markInProgress),
+                    getResources().getColor(R.color.markCompleted)
+            };
+            entries.add(new PieEntry(optcomp_only, String.valueOf(optcomp_only)));
+            entries.add(new PieEntry(comp_ip, String.valueOf(comp_ip)));
+            entries.add(new PieEntry(comp_achv, String.valueOf(comp_achv)));
+        } else if (optComplete) {
+            Log.v(LOGTAG, "Graph says: No compuslory. But all optional.");
+            col = new int[] {
+                    getResources().getColor(R.color.markCompleted),
+                    getResources().getColor(R.color.markBachelor)
+            };
+            entries.add(new PieEntry(optcomp_only, String.valueOf(optcomp_only)));
+            entries.add(new PieEntry(comp_credits, String.valueOf(comp_credits)));
+        } else if (optInProg) {
+            Log.v(LOGTAG, "Graph says: No compulsory and a bit optional.");
+            col = new int[] {
+                    getResources().getColor(R.color.markMarked),
+                    getResources().getColor(R.color.markInProgress),
+                    getResources().getColor(R.color.markCompleted),
+                    getResources().getColor(R.color.markBachelor)
+            };
+            int todo = optcomp_only - opt_achv - opt_ip;
+            entries.add(new PieEntry(todo, String.valueOf(todo)));
+            entries.add(new PieEntry(opt_ip, String.valueOf(opt_ip)));
+            entries.add(new PieEntry(opt_achv, String.valueOf(opt_achv)));
+            entries.add(new PieEntry(comp_credits, String.valueOf(comp_credits)));
+        } else {
+            Log.v(LOGTAG, "Graph says: There is no course.");
+            col = new int[] {
+                    getResources().getColor(R.color.markMarked),
+                    getResources().getColor(R.color.markBachelor)
+            };
+            entries.add(new PieEntry(optcomp_only, String.valueOf(optcomp_only)));
+            entries.add(new PieEntry(comp_credits, String.valueOf(comp_credits)));
         }
-        // add in progress and achieved credits to chart
-        entries.add(new PieEntry(ip_credits, String.valueOf(ip_credits)));
-        entries.add(new PieEntry(achv_credits, String.valueOf(achv_credits)));
+
         // create the pieSet from the entries created above
         PieDataSet pieSet = new PieDataSet(entries, "Credits towards Module completion");
         // we display the formatted information on the chart and as such do not draw the actual
@@ -450,7 +593,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
             case 0:
                 String[] courseData = SQL_Database.COURSES_COLUMNS;
                 String courseSelection = SQL_Database.COURSES_COLUMN_MODULE + " = " + "'" + module_code + "'";
-                return new CursorLoader(this, DataProvider.COURSES_DB_URI, courseData, courseSelection, null, SQL_Database.COURSES_COLUMN_STATE);
+                return new CursorLoader(this, DataProvider.COURSES_DB_URI, courseData, courseSelection, null, SQL_Database.COURSES_COLUMN_STATE + " DESC");
             case 1:
                 if (args != null) {
                     String c_id = Long.toString(args.getLong("id"));
