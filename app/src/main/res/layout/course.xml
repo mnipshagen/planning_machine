@@ -202,15 +202,16 @@
         app:layout_constraintTop_toBottomOf="@+id/course_pm" />
 
     <View
-        style="@style/Divider"
         android:id="@+id/course_divider"
+        style="@style/Divider"
+        android:layout_height="2dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/course_butt_move"
-        android:layout_marginTop="8dp" />
+        app:layout_constraintTop_toBottomOf="@+id/course_butt_move" />
 
     <Button
         android:id="@+id/course_butt_dismiss"
@@ -225,6 +226,36 @@
         android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/course_infodump" />
+
+    <Button
+        android:id="@+id/course_butt_remove"
+        style="@android:style/Widget.Material.Light.Button.Borderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Remove"
+        android:textAllCaps="false"
+        android:textAppearance="@android:style/TextAppearance.Material.Button"
+        android:textColor="@color/colorAccent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/course_infodump" />
+
+    <Button
+        android:id="@+id/course_butt_changeState"
+        style="@android:style/Widget.Material.Button.Borderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Change State"
+        android:textAllCaps="false"
+        android:textAppearance="@android:style/TextAppearance.Material.Button"
+        android:textColor="@color/colorAccent"
+        app:layout_constraintLeft_toRightOf="@+id/course_butt_remove"
+        app:layout_constraintRight_toLeftOf="@+id/course_butt_dismiss"
         app:layout_constraintTop_toBottomOf="@+id/course_infodump" />
 
 </android.support.constraint.ConstraintLayout>
