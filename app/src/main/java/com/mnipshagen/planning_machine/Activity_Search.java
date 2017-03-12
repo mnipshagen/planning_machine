@@ -3,6 +3,7 @@ package com.mnipshagen.planning_machine;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.BoolRes;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -25,12 +26,26 @@ import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 public class Activity_Search extends Activity_Base {
     // hold a reference to our recycler view
     private RecyclerView rv;
+    private Spinner moduleList;
+    private EditText courseTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         setActionBarTitle(R.string.title_search);
+
+        moduleList = (Spinner) findViewById(R.id.searchSpinnerModule);
+        courseTitle = (EditText) findViewById(R.id.searchCourseTitle);
+
+        Bundle args = getIntent().getExtras();
+        Boolean start = false;
+        if (args != null) {
+            courseTitle.setText(args.getString("course_title"));
+            String module_code = args.getString("module_code");
+            moduleList.setSelection(ModuleTools.codeToListID(module_code));
+            start = args.getBoolean("start");
+        }
 
         // when enter is pressed in the course search field, start the search
         findViewById(R.id.searchCourseTitle).setOnKeyListener(new View.OnKeyListener() {
@@ -64,6 +79,8 @@ public class Activity_Search extends Activity_Base {
                 startSearch();
             }
         });
+
+        if(start) {startSearch();}
     }
     /**
      * search the database with all the filters applied
@@ -77,12 +94,10 @@ public class Activity_Search extends Activity_Base {
             imm.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
         }
 
-        Spinner spinner = (Spinner) findViewById(R.id.searchSpinnerModule);
         Switch switchComp = (Switch) findViewById(R.id.searchSwitchCompulsory);
-        EditText courseTitle = (EditText) findViewById(R.id.searchCourseTitle);
 
         // save module which we want to search for and course name
-        String module = spinner.getSelectedItem().toString();
+        String module = moduleList.getSelectedItem().toString();
         String course = courseTitle.getText().toString().replace(" ","%");
         // all the columns to search for
         String[] columns = {
@@ -105,7 +120,7 @@ public class Activity_Search extends Activity_Base {
             selection = selection.concat(SQL_Database.COURSE_COLUMN_COURSE + " LIKE '%" + course + "%'");
         }
 
-        if( spinner.getSelectedItemPosition() != 0) {
+        if( moduleList.getSelectedItemPosition() != 0) {
             if( !selection.equals("") ) {
                 selection = selection.concat(" AND ");
             }

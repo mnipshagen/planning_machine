@@ -42,6 +42,10 @@ public class Fragment_Dialogs {
     }
 
     public static void changeGrade(String course_name, final long id, final Context context) {
+        changeGrade(course_name, id, context, null);
+    }
+
+    public static void changeGrade(String course_name, final long id, final Context context, DialogInterface.OnDismissListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Set Grade of " + course_name);
         final EditText input = new EditText(context);
@@ -77,6 +81,9 @@ public class Fragment_Dialogs {
                 dialog.cancel();
             }
         });
+        if(listener != null) {
+            builder.setOnDismissListener(listener);
+        }
         builder.show();
     }
 }

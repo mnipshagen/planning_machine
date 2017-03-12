@@ -189,6 +189,29 @@ public class ModuleTools {
         }
     }
 
+    public static int codeToListID(String code) {
+        switch (code) {
+            case "KI":
+                return 1;
+            case "KNP":
+                return 2;
+            case "CL":
+                return 3;
+            case "INF":
+                return 4;
+            case "MAT":
+                return 5;
+            case "NI":
+                return 6;
+            case "NW":
+                return 7;
+            case "PHIL":
+                return 8;
+            default:
+                return 0;
+        }
+    }
+
     public static void moveCourse(String code, long id, Context context) {
         ContentResolver mCR = context.getContentResolver();
         Cursor c = mCR.query(courses_table, new String[]{col_mod}, col_id + "=" + id, null, null);

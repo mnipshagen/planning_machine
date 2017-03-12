@@ -31,6 +31,10 @@
         <item>In Progress</item>
         <item>Marked</item>
     </string-array>
+    <string-array name="terms">
+        <item>W</item>
+        <item>S</item>
+    </string-array>
     <string name="transition_coursename" translatable="false">transcoursename</string>
     <string name="KI_title">Artificial Intelligence</string>
     <string name="CL_title">Computational Linguistics</string>

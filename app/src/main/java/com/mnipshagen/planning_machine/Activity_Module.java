@@ -1,13 +1,13 @@
 package com.mnipshagen.planning_machine;
 
 import android.app.Dialog;
-import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -17,14 +17,19 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+import com.mnipshagen.planning_machine.Dialogs.setGradeDialog;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,16 +41,16 @@ import java.util.List;
  * corresponding module code
  */
 
-public class Activity_Module extends Activity_Base implements LoaderManager.LoaderCallbacks<Cursor> {
+public class Activity_Module extends Activity_Base implements LoaderManager.LoaderCallbacks<Cursor>, setGradeDialog.GradeDialogListener{
     //TODO use cursor loader
 
-    // holding a database reference
-    private ContentResolver mCR;
     // the cursor which holds the course data
     private Cursor courses;
     private Adapter_Module adapter;
     // the module code of the active module
     private String module_code;
+
+    Dialog dialog;
 
     private int comp_credits;
     private int optcomp_credits;
@@ -70,6 +75,119 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         // set the name as the title of the activity
         setActionBarTitle(name);
 
+        FloatingActionButton fab_addCourse = (FloatingActionButton) findViewById(R.id.moduleAddCourse);
+        fab_addCourse.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final EditText input = new EditText(Activity_Module.this);
+                input.setHint("Course title to search for");
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
+                builder.setTitle("Start search:")
+                        .setView(input)
+                        .setPositiveButton("Search", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent(Activity_Module.this, Activity_Search.class);
+                                intent.putExtra("course_name", input.getText().toString());
+                                intent.putExtra("module_code", module_code);
+                                intent.putExtra("start", true);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        })
+                        .show();
+            }
+        });
+        FloatingActionButton fab_remCourse = (FloatingActionButton) findViewById(R.id.moduleRemoveCourse);
+        fab_remCourse.setEnabled(false);
+        fab_remCourse.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
+                final ArrayList<Long> selected = new ArrayList<>();
+                builder.setTitle("Remove Courses")
+                        .setMultiChoiceItems(courses, SQL_Database.COURSE_COLUMN_ID, SQL_Database.COURSE_COLUMN_COURSE, new DialogInterface.OnMultiChoiceClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                                courses.moveToPosition(which);
+                                if(isChecked){
+                                    selected.add(courses.getLong(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ID)));
+                                } else {
+                                    selected.remove(courses.getLong(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ID)));
+                                }
+                            }
+                        })
+                            .setPositiveButton("Remove", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                TextView text = new TextView(Activity_Module.this);
+                                text.setText("Are you sure you want to remove " + selected.size() + " courses?");
+                                AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
+                                builder.setTitle("EX-TERMINATE")
+                                        .setView(text)
+                                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.cancel();
+                                            }
+                                        })
+                                        .setPositiveButton("Remove", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                for (long id : selected) {
+                                                    ModuleTools.removeCourse(id, Activity_Module.this);
+                                                }
+                                            }
+                                        })
+                                        .show();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        })
+                        .show();
+            }
+        });
+        FloatingActionButton fab_addOral = (FloatingActionButton) findViewById(R.id.moduleAddOral);
+        FloatingActionButton fab_addUnlisted = (FloatingActionButton) findViewById(R.id.moduleAddUnlisted);
+        fab_addUnlisted.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
+                builder.setTitle("Add an unlisted course")
+                        .setView(R.layout.unlisted_course)
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        })
+                        .setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ContentValues cv = new ContentValues();
+                                cv.put(SQL_Database.COURSES_COLUMN_COURSE, ((EditText)getParent().findViewById(R.id.unknown_courseTitle)).getText().toString());
+//                                cv.put(SQL_Database.COURSES_COLUMN_ECTS,);
+//                                cv.put(SQL_Database.COURSES_COLUMN_TERM,);
+//                                cv.put(SQL_Database.COURSES_COLUMN_YEAR,);
+//                                cv.put(SQL_Database.COURSES_COLUMN_MODULE,);
+                            }
+                        });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+        });
+        FloatingActionButton fab_setSigniicane = (FloatingActionButton) findViewById(R.id.moduleSetSignificance);
+
 
         initGraph();
         /* And now to the lower part! */
@@ -78,9 +196,6 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         // initialise the cursor if it holds no data
         if(courses == null) {
             getSupportLoaderManager().initLoader(0, null, this);
-        }
-        if (mCR == null) {
-            mCR = getContentResolver();
         }
         // make it pretty!
         rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
@@ -96,40 +211,41 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                 new RecyclerItemClickListener(this, rv ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override
                     public void onItemClick(View view, final int position) {
-                        //TODO REMOVE cursor. USE cursor loader
-                        final Dialog dialog = new Dialog(Activity_Module.this);
+                        dialog = new Dialog(Activity_Module.this);
                         dialog.setContentView(R.layout.course);
 
-                        int oldpos = courses.getPosition();
+                        final int oldpos = courses.getPosition();
                         courses.moveToPosition(position);
                         final long id = courses.getLong(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ID));
-                        courses.moveToPosition(oldpos);
-                        final Cursor c = mCR.query(DataProvider.COURSES_DB_URI, null, SQL_Database.COURSES_COLUMN_ID + "=" + id, null, null);
-                        c.moveToFirst();
+
                         TextView course_name = (TextView) dialog.findViewById(R.id.course_name);
-                        final String c_name = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE));
+                        final String c_name = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE));
                         course_name.setText(c_name);
                         final TextView grade = (TextView) dialog.findViewById(R.id.course_grade);
-                        grade.setText(String.format("%.2f", c.getDouble(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE))));
+                        grade.setText(String.format("%.2f", courses.getDouble(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE))));
                         grade.setOnClickListener(new View.OnClickListener() {
+
                             @Override
                             public void onClick(View v) {
-                                Fragment_Dialogs.changeGrade(c_name, id, Activity_Module.this);
-                                c.requery();
-                                grade.setText(String.format("%.2f", c.getDouble(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE))));
+                                setGradeDialog setGrade = new setGradeDialog();
+                                Bundle args = new Bundle();
+                                args.putString("course_name", c_name);
+                                args.putLong("id", id);
+                                setGrade.setArguments(args);
+                                setGrade.show(getSupportFragmentManager(), "setGrade");
                             }
                         });
                         TextView ects = (TextView) dialog.findViewById(R.id.course_ects);
-                        String credit = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ECTS)) + " ECTS";
+                        String credit = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ECTS)) + " ECTS";
                         ects.setText(credit);
                         TextView typein = (TextView) dialog.findViewById(R.id.course_typein);
-                        String tmp = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TYPE));
+                        String tmp = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TYPE));
                         tmp = ModuleTools.courseTypeConv(tmp);
-                        String tmp2 = ModuleTools.codeToName(c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_MODULE)), Activity_Module.this);
+                        String tmp2 = ModuleTools.codeToName(courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_MODULE)), Activity_Module.this);
                         tmp = tmp.concat(" in " + tmp2);
                         typein.setText(tmp);
                         ImageView state = (ImageView) dialog.findViewById(R.id.course_state);
-                        int st = c.getInt(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_STATE));
+                        int st = courses.getInt(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_STATE));
                         switch (st) {
                             case 0:
                                 state.setImageResource(R.color.markMarked);
@@ -142,20 +258,20 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                 break;
                         }
                         TextView pm = (TextView) dialog.findViewById(R.id.course_pm);
-                        if(c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_INFIELD_TYPE)).equals("PM")) {
+                        if(courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_INFIELD_TYPE)).equals("PM")) {
                             pm.setText("Course is compulsory!");
                         } else {
                             pm.setText("Course is not Compulsory");
                         }
                         TextView term = (TextView) dialog.findViewById(R.id.course_term);
-                        String year = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_YEAR));
-                        String t = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TERM));
+                        String year = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_YEAR));
+                        String t = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TERM));
                         t = t.concat(" " + year);
                         term.setText(t);
 
                         Button but_move = (Button) dialog.findViewById(R.id.course_butt_move);
                         String movable = "Movable to:\n";
-                        String[] possibleCourses = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_FIELDS_STR)).concat(", Open Studies").split(",");
+                        String[] possibleCourses = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_FIELDS_STR)).concat(", Open Studies").split(",");
                         List<String> possibleCodes = new ArrayList<>(Arrays.asList(ModuleTools.getModuleCodes(possibleCourses)));
                         possibleCodes.remove(module_code);
                         String[] modNames = ModuleTools.codesToNames(possibleCodes, Activity_Module.this);
@@ -180,13 +296,13 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                         });
 
                         TextView desc = (TextView) dialog.findViewById(R.id.course_description);
-                        String description = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE_DESC));
+                        String description = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE_DESC));
                         description = description.length()==0? "No description available" : description;
                         desc.setText(description);
                         TextView info = (TextView) dialog.findViewById(R.id.course_infodump);
-                        String infodump = "Taught by " + c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TEACHERS_STR)) + "\n" +
-                                            "StudIP code: " + c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_CODE)) + "\n" +
-                                            "IKW code: " + c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE_ID));
+                        String infodump = "Taught by " + courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TEACHERS_STR)) + "\n" +
+                                            "StudIP code: " + courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_CODE)) + "\n" +
+                                            "IKW code: " + courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE_ID));
                         info.setText(infodump);
                         Button dismiss = (Button) dialog.findViewById(R.id.course_butt_dismiss);
                         dismiss.setOnClickListener(new View.OnClickListener() {
@@ -198,7 +314,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                             @Override
                             public void onDismiss(DialogInterface dialog) {
-                                c.close();
+                                courses.moveToPosition(oldpos);
                             }
                         });
                         dialog.show();
@@ -272,7 +388,6 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
 
 
     private void initGraph() {
-        //TODO include listener for adapter
         float[] res = ModuleTools.refreshModule(module_code, this);
         int achv_credits = (int) res[0];
         int ip_credits = (int) res[1];
@@ -338,31 +453,54 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String[] courseData = {
-                SQL_Database.COURSES_COLUMN_ID,
-                SQL_Database.COURSES_COLUMN_COURSE,
-                SQL_Database.COURSES_COLUMN_ECTS,
-                SQL_Database.COURSES_COLUMN_GRADE,
-                SQL_Database.COURSES_COLUMN_STATE,
-                SQL_Database.COURSES_COLUMN_MODULE,
-                SQL_Database.COURSE_COLUMN_FIELDS_STR
-        };
-        String courseSelection = SQL_Database.COURSES_COLUMN_MODULE + " = " + "'" + module_code + "'";
-        Loader<Cursor> loader = new CursorLoader(this, DataProvider.COURSES_DB_URI, courseData, courseSelection, null, SQL_Database.COURSES_COLUMN_STATE);
-
-        return loader;
+        switch (id) {
+            case 0:
+                String[] courseData = SQL_Database.COURSES_COLUMNS;
+                String courseSelection = SQL_Database.COURSES_COLUMN_MODULE + " = " + "'" + module_code + "'";
+                return new CursorLoader(this, DataProvider.COURSES_DB_URI, courseData, courseSelection, null, SQL_Database.COURSES_COLUMN_STATE);
+            case 1:
+                if (args != null) {
+                    String c_id = Long.toString(args.getLong("id"));
+                    String[] col = {SQL_Database.COURSES_COLUMN_GRADE};
+                    String selection = SQL_Database.COURSES_COLUMN_ID + "=" + c_id;
+                    return new CursorLoader(this, DataProvider.COURSES_DB_URI, col, selection, null, null);
+                } else {
+                    throw new IllegalArgumentException("No ID was given.");
+                }
+            default:
+                throw new IllegalArgumentException("unknown cursor id");
+        }
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        courses = data;
-        adapter.changeCursor(data);
-        initGraph();
+        switch (loader.getId()){
+            case 0:
+                courses = data;
+                adapter.changeCursor(data);
+                initGraph();
+                if(data.getCount() != 0) {
+                    findViewById(R.id.moduleRemoveCourse).setEnabled(true);
+                } else{
+                    findViewById(R.id.moduleRemoveCourse).setEnabled(false);
+                }
+                break;
+        }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        if(courses != null) courses.close();
-        adapter.changeCursor(null);
+        switch (loader.getId()) {
+            case 0:
+                if (courses != null) courses.close();
+                adapter.changeCursor(null);
+                break;
+        }
+    }
+
+    @Override
+    public void onGradeDialogPositiveClick(DialogFragment d, Double g) {
+        TextView grade = (TextView) dialog.findViewById(R.id.course_grade);
+        grade.setText(String.format("%.2f",g));
     }
 }
