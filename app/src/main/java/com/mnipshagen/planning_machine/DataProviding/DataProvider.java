@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -105,6 +106,8 @@ public class DataProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, ContentValues values) {
+        Log.v("Provider-Ins","Uri: " + uri.toString());
+        Log.v("Provider-Ins","Content: " + values.toString());
         int uriType = sURIMatcher.match(uri);
         SQLiteDatabase db = data.getWritableDatabase();
         long id;
@@ -112,11 +115,13 @@ public class DataProvider extends ContentProvider {
 
         switch (uriType) {
             case COURSE_DB:
+                Log.v("Provider-Ins","Reached COURSE");
                 id = db.insert(SQL_Database.COURSE_TABLE_NAME, null, values);
                 res_uri = Uri.parse(COURSE_BASE_PATH + "/" + id);
                 break;
             case COURSES_SAVED:
-                id = db.insert(SQL_Database.COURSE_TABLE_NAME, null, values);
+                Log.v("Provider-Ins","Reached COURSES");
+                id = db.insert(SQL_Database.COURSES_TABLE_NAME, null, values);
                 res_uri = Uri.parse(COURSES_BASE_PATH + "/" + id);
                 break;
             default:

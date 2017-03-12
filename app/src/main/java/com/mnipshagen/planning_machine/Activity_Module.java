@@ -27,6 +27,7 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+import com.mnipshagen.planning_machine.Dialogs.addUnlistedCourseDialog;
 import com.mnipshagen.planning_machine.Dialogs.setGradeDialog;
 
 import org.w3c.dom.Text;
@@ -162,28 +163,11 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         fab_addUnlisted.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
-                builder.setTitle("Add an unlisted course")
-                        .setView(R.layout.unlisted_course)
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        })
-                        .setPositiveButton("Add", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ContentValues cv = new ContentValues();
-                                cv.put(SQL_Database.COURSES_COLUMN_COURSE, ((EditText)getParent().findViewById(R.id.unknown_courseTitle)).getText().toString());
-//                                cv.put(SQL_Database.COURSES_COLUMN_ECTS,);
-//                                cv.put(SQL_Database.COURSES_COLUMN_TERM,);
-//                                cv.put(SQL_Database.COURSES_COLUMN_YEAR,);
-//                                cv.put(SQL_Database.COURSES_COLUMN_MODULE,);
-                            }
-                        });
-                AlertDialog dialog = builder.create();
-                dialog.show();
+                addUnlistedCourseDialog dialog = new addUnlistedCourseDialog();
+                Bundle args = new Bundle();
+                args.putString("module_code", module_code);
+                dialog.setArguments(args);
+                dialog.show(getSupportFragmentManager(), "addUnlistedCourse");
             }
         });
         FloatingActionButton fab_setSigniicane = (FloatingActionButton) findViewById(R.id.moduleSetSignificance);
@@ -221,6 +205,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                         TextView course_name = (TextView) dialog.findViewById(R.id.course_name);
                         final String c_name = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE));
                         course_name.setText(c_name);
+
                         final TextView grade = (TextView) dialog.findViewById(R.id.course_grade);
                         grade.setText(String.format("%.2f", courses.getDouble(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE))));
                         grade.setOnClickListener(new View.OnClickListener() {
@@ -235,15 +220,22 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                 setGrade.show(getSupportFragmentManager(), "setGrade");
                             }
                         });
+
                         TextView ects = (TextView) dialog.findViewById(R.id.course_ects);
                         String credit = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ECTS)) + " ECTS";
                         ects.setText(credit);
+
                         TextView typein = (TextView) dialog.findViewById(R.id.course_typein);
                         String tmp = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TYPE));
-                        tmp = ModuleTools.courseTypeConv(tmp);
+                        if (tmp != null) {
+                            tmp = ModuleTools.courseTypeConv(tmp);
+                        } else {
+                            tmp = "";
+                        }
                         String tmp2 = ModuleTools.codeToName(courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_MODULE)), Activity_Module.this);
                         tmp = tmp.concat(" in " + tmp2);
                         typein.setText(tmp);
+
                         ImageView state = (ImageView) dialog.findViewById(R.id.course_state);
                         int st = courses.getInt(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_STATE));
                         switch (st) {
@@ -258,7 +250,8 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                 break;
                         }
                         TextView pm = (TextView) dialog.findViewById(R.id.course_pm);
-                        if(courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_INFIELD_TYPE)).equals("PM")) {
+                        String compulsory = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_INFIELD_TYPE));
+                        if(compulsory != null && compulsory.equals("PM")) {
                             pm.setText("Course is compulsory!");
                         } else {
                             pm.setText("Course is not Compulsory");
@@ -297,7 +290,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
 
                         TextView desc = (TextView) dialog.findViewById(R.id.course_description);
                         String description = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_COURSE_DESC));
-                        description = description.length()==0? "No description available" : description;
+                        description = (description==null || description.length()==0)? "No description available" : description;
                         desc.setText(description);
                         TextView info = (TextView) dialog.findViewById(R.id.course_infodump);
                         String infodump = "Taught by " + courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TEACHERS_STR)) + "\n" +
