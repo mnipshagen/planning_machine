@@ -5,14 +5,19 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.BoolRes;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 
@@ -33,6 +38,7 @@ public class Activity_Search extends Activity_Base {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
+        final AppBarLayout mAppBar = (AppBarLayout) findViewById(R.id.search_app_bar);
         setActionBarTitle(R.string.title_search);
 
         moduleList = (Spinner) findViewById(R.id.searchSpinnerModule);
@@ -70,6 +76,14 @@ public class Activity_Search extends Activity_Base {
         Adapter_Search adapter = new Adapter_Search(null, this);
         rv.setAdapter(adapter);
         rv.setLayoutManager(new LinearLayoutManager(this));
+//        rv.setOnFlingListener(new RecyclerView.OnFlingListener() {
+//            @Override
+//            public boolean onFling(int velocityX, int velocityY) {
+//                if (velocityY < 0)
+//                    mAppBar.setExpanded(true);
+//                return false;
+//            }
+//        });
 
         // on fab click start the search
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.search_FAB);
@@ -133,7 +147,6 @@ public class Activity_Search extends Activity_Base {
             }
             selection = selection.concat(SQL_Database.COURSE_COLUMN_INFIELD_TYPE + " = 'PM'");
         }
-        ((AppBarLayout)findViewById(R.id.search_app_bar)).setExpanded(false);
         // and start the background search. background to keep the UI thread from being stuck by it
         Async_Search search = new Async_Search(this);
         search.execute(columns, new String[]{selection});
@@ -144,5 +157,26 @@ public class Activity_Search extends Activity_Base {
      */
     public void onSearchCompleted(Cursor results) {
         ((Adapter_Search) rv.getAdapter()).changeCursor(results);
+
+//        CollapsingToolbarLayout mToolbar = (CollapsingToolbarLayout) findViewById(R.id.search_toolbar);
+//        AppBarLayout mAppBar = (AppBarLayout) findViewById(R.id.search_app_bar);
+//
+//        AppBarLayout.LayoutParams toolbarLayoutParams = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
+//        CoordinatorLayout.LayoutParams appBarLayoutParams = (CoordinatorLayout.LayoutParams) mAppBar.getLayoutParams();
+//
+//        Log.v("SEARCH", "Last visible item pos: " + ((LinearLayoutManager)rv.getLayoutManager()).findLastCompletelyVisibleItemPosition());
+//        Log.v("SEARCH", "Cursor count: " + results.getCount());
+//
+//        if (((LinearLayoutManager)rv.getLayoutManager()).findLastCompletelyVisibleItemPosition() == results.getCount() - 1) {
+//            appBarLayoutParams.setBehavior(null);
+//            toolbarLayoutParams.setScrollFlags(0);
+//        } else {
+//            mAppBar.setExpanded(false);
+//            toolbarLayoutParams.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS | AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP);
+//            appBarLayoutParams.setBehavior(new AppBarLayout.Behavior());
+//        }
+//
+//        mToolbar.setLayoutParams(toolbarLayoutParams);
+//        mAppBar.setLayoutParams(appBarLayoutParams);
     }
 }
