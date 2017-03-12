@@ -92,8 +92,6 @@ public class ModuleTools {
         ContentResolver mCR = context.getContentResolver();
 
         String[] courseData = {
-                SQL_Database.COURSES_COLUMN_ID,
-                SQL_Database.COURSES_COLUMN_COURSE,
                 SQL_Database.COURSES_COLUMN_ECTS,
                 SQL_Database.COURSES_COLUMN_GRADE,
                 SQL_Database.COURSES_COLUMN_STATE
@@ -105,6 +103,8 @@ public class ModuleTools {
         int achv_credits = 0;
         int ip_credits = 0;
         float grade = 0.f;
+        float count = 0.f;
+
 
         c.moveToPosition(-1);
         while(c.moveToNext()) {
@@ -115,11 +115,15 @@ public class ModuleTools {
                 ip_credits += ects;
             } else if (state == 2) {
                 achv_credits += ects;
-                grade = g==0.0? grade : grade+g;
+                if (g != 0.0) {
+                    grade = grade + (g*ects);
+                    count += ects;
+                }
+
             }
         }
-        if(c.getCount()!=0) {
-            grade /= c.getCount();
+        if(count != 0f) {
+            grade /= count;
         }
 
         ContentValues values = new ContentValues();
@@ -131,6 +135,34 @@ public class ModuleTools {
         c.close();
 
         return new float[] {achv_credits, ip_credits, grade};
+    }
+
+    public static int[] getCompAchvEcts(String module_code, Context context) {
+        ContentResolver cr = context.getContentResolver();
+        String [] columns = {SQL_Database.COURSES_COLUMN_ECTS, SQL_Database.COURSES_COLUMN_STATE,
+                            SQL_Database.COURSES_COLUMN_INFIELD_TYPE};
+        String selection = SQL_Database.COURSES_COLUMN_MODULE + "='" + module_code + "'";
+
+        Cursor c = cr.query(courses_table, columns, selection, null, null);
+
+        int achv = 0;
+        int ip = 0;
+
+        c.moveToPosition(-1);
+        while(c.moveToNext()) {
+            int state = c.getInt(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_STATE));
+            int ects = c.getInt(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_ECTS));
+            String type = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_INFIELD_TYPE));
+            if (type != null && type.equals("PM")) {
+                switch (state) {
+                    case 2: achv += ects; break;
+                    case 1: ip += ects; break;
+                }
+            }
+        }
+        c.close();
+
+        return new int[] {achv, ip};
     }
 
     public static String[] getModuleCodes(String[] m) {

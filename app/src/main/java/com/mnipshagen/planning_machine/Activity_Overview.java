@@ -2,17 +2,20 @@ package com.mnipshagen.planning_machine;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 
 import java.util.ArrayList;
@@ -22,14 +25,14 @@ import java.util.List;
  * The overview activity which is also the launch activity
  * Here all modules are displayed and the overall progress towards the bachelor
  */
-public class Activity_Overview extends Activity_Base {
+public class Activity_Overview extends Activity_Base implements LoaderManager.LoaderCallbacks<Cursor> {
 
     // the bachelor credits and the bachelor thesis credits are fix.
     private final int BACHELOR_CREDITS = 180;
     private final int THESIS_CREDITS = 12;
     private Cursor cursor;
-    private SQLiteDatabase db;
     private RecyclerView rv;
+    private Adapter_Overview adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,12 +44,14 @@ public class Activity_Overview extends Activity_Base {
         rv = (RecyclerView) findViewById(R.id.overviewRecycler);
         // dump the cursor into the console for debug reasons
         // Log.v("Cursor", DatabaseUtils.dumpCursorToString(cursor));
-
+        if (cursor == null) {
+            getSupportLoaderManager().initLoader(0, null, this);
+        }
         // MAKE IT PRETTY MAKE IT NICE
         rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         rv.setItemAnimator(new DefaultItemAnimator());
         // initialise the adapter
-        Adapter_Overview adapter = new Adapter_Overview(null, this);
+        adapter = new Adapter_Overview(cursor, this);
         rv.setAdapter(adapter);
         // and the layoutmanager
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
@@ -62,7 +67,12 @@ public class Activity_Overview extends Activity_Base {
                         String code = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
                         int compECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_COMP));
                         int optcompECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_OPTCOMP));
-                        openModule(name, code, compECTS, optcompECTS);
+                        Intent intent = new Intent(Activity_Overview.this, Activity_Module.class);
+                        intent.putExtra("Name",name);
+                        intent.putExtra("Module", code);
+                        intent.putExtra("compECTS", compECTS);
+                        intent.putExtra("optcompECTS", optcompECTS);
+                        startActivity(intent);
                     }
 
                     @Override
@@ -72,29 +82,7 @@ public class Activity_Overview extends Activity_Base {
                 }));
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        // initalise the database and fetch all the module data
-        db = SQL_Database.getInstance(this).getReadableDatabase();
-        String[] columns = {
-                SQL_Database.MODULE_COLUMN_ID,
-                SQL_Database.MODULE_COLUMN_NAME,
-                SQL_Database.MODULE_COLUMN_CODE,
-                SQL_Database.MODULE_COLUMN_ECTS,
-                SQL_Database.MODULE_COLUMN_IPECTS,
-                SQL_Database.MODULE_COLUMN_GRADE
-        };
-        // query the database
-        cursor = db.query(
-                SQL_Database.MODULE_TABLE_NAME,
-                null, null, null,
-                null, null, SQL_Database.MODULE_COLUMN_ID);
-        ((Adapter_Overview) rv.getAdapter()).changeCursor(cursor);
-        //set up the grade
-        // TODO format and set up grade
-        ((TextView) findViewById(R.id.overviewUpperText))
-                .setText("Grade");
+    private void initGraph() {
 
         // calculate the overall achieved and in progress credits
         // by going through the modules
@@ -105,9 +93,19 @@ public class Activity_Overview extends Activity_Base {
             ach_ects += cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS));
             ip_ects += cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_IPECTS));
         }
+        // find the 5 best grades! (for now until other algorithms are implemented)
+        List<Float> grades = new ArrayList<>();
+        cursor.moveToPosition(-1);
+        while(cursor.moveToNext()){
+            float g = cursor.getFloat(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE));
+            sortIn(g, grades);
+        }
+        float grade = 0f;
+        for(float g : grades) grade += g;
+        grade /= (float) grades.size();
 
         /* Set up the pie chart */
-        // the entries are t he thesis itself, the credits still to do, the in progress credits
+        // the entries are the thesis itself, the credits still to do, the in progress credits
         // and the already achieved credits
         List<PieEntry> entries = new ArrayList<>();
         entries.add(new PieEntry(THESIS_CREDITS, String.valueOf(THESIS_CREDITS)));
@@ -128,7 +126,7 @@ public class Activity_Overview extends Activity_Base {
             ach_ects = BACHELOR_CREDITS-THESIS_CREDITS;
         }
         String ach_str = String.valueOf(ach_ects);
-        if(ach_ects == 0 ) {
+        if(ach_ects <= 0 ) {
             ach_str = "";
         }
         entries.add(new PieEntry(todo_ects, todo_str));
@@ -139,10 +137,12 @@ public class Activity_Overview extends Activity_Base {
         // we display the formatted description of each slice. no need for double information
         pieSet.setDrawValues(false);
         // ALL THE COLOURS OF THE WIND. or at least of spam
-        int[] col = {   getResources().getColor(R.color.markBachelor),
+        int[] col = {
+                getResources().getColor(R.color.markBachelor),
                 getResources().getColor(R.color.markMarked),
                 getResources().getColor(R.color.markInProgress),
-                getResources().getColor(R.color.markCompleted)  };
+                getResources().getColor(R.color.markCompleted)
+        };
         // apply the colours
         pieSet.setColors(col);
         // aaaand create the data from the set of entries
@@ -152,9 +152,9 @@ public class Activity_Overview extends Activity_Base {
                 (com.github.mikephil.charting.charts.PieChart) findViewById(R.id.overviewPieChart);
         // and attach data
         graph.setData(pieData);
+        graph.setCenterText(String.format("%.2f", grade));
         // format it
-        // no donut and no description and no legend and no interaction
-        graph.setDrawHoleEnabled(false);
+        // no description and no legend and no interaction
         graph.getDescription().setEnabled(false);
         graph.getLegend().setEnabled(false);
         graph.setRotationEnabled(false);
@@ -162,26 +162,47 @@ public class Activity_Overview extends Activity_Base {
         graph.setEntryLabelColor(R.color.half_black);
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        cursor.close();
-        db.close();
+    private void sortIn(float g, List<Float> grades) {
+        if (g == 0f) return;
+        int i = 0;
+        while (i < grades.size() && g < grades.get(i++));
+        grades.add(i, g);
+        if (grades.size() > 5) grades.remove(grades.size() -1);
+        Log.v("OVERVIEW", "Sorting " + g + " brought us:" + grades.toString());
     }
 
-    /**
-     * build the intent to display the module and start it
-     * @param name name of the module
-     * @param code the po code of the module
-     * @param compECTS compulsory credits of module
-     * @param optcompECTS optional compulsory credits
-     */
-    private void openModule(String name, String code, int compECTS, int optcompECTS) {
-        Intent intent = new Intent(this, Activity_Module.class);
-        intent.putExtra("Name",name);
-        intent.putExtra("Module", code);
-        intent.putExtra("compECTS", compECTS);
-        intent.putExtra("optcompECTS", optcompECTS);
-        startActivity(intent);
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        switch (id) {
+            case 0:
+                String[] projection = SQL_Database.MODULE_COLUMNS;
+                return new CursorLoader(this, DataProvider.MODULE_DB_URI,
+                                    projection, null, null,
+                                    SQL_Database.MODULE_COLUMN_GRADE + " ASC");
+            case 1:
+            default:
+                throw new IllegalArgumentException("unknown cursor id");
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        switch (loader.getId()){
+            case 0:
+                cursor = data;
+                adapter.changeCursor(data);
+                initGraph();
+                break;
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        switch (loader.getId()) {
+            case 0:
+                if (cursor != null) cursor.close();
+                adapter.changeCursor(null);
+                break;
+        }
     }
 }
