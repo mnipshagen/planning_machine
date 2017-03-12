@@ -1,28 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     tools:layout_editor_absoluteX="9dp"
     tools:layout_editor_absoluteY="8dp">
 
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/unknown_courseTitleLayout"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true" >
+
+        <EditText
+            android:id="@+id/unknown_courseTitle"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/select_course"
+            android:inputType="text"
+            android:textAppearance="@android:style/TextAppearance.Material.Large" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/unknown_ECTSLayout"
+        android:layout_below="@+id/unknown_courseTitleLayout"
+        android:layout_alignParentStart="true" >
+
+        <EditText
+            android:id="@+id/unknown_ECTS"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="8dp"
+            android:ems="10"
+            android:hint="ECTS"
+            android:inputType="number"
+            android:textAppearance="@android:style/TextAppearance.Material.Large" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/unknown_ECTSLayout"
+        android:layout_alignEnd="@+id/unknown_ECTSLayout" >
+
+        <EditText
+            android:id="@+id/unknown_year"
+            android:layout_width="152dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="8dp"
+            android:ems="10"
+            android:hint="Year"
+            android:inputType="number"
+            android:textAppearance="@android:style/TextAppearance.Material.Large" />
+    </android.support.design.widget.TextInputLayout>
+
     <Spinner
         android:id="@+id/unknown_spinner"
         android:layout_marginTop="8dp"
         android:layout_width="80dp"
         android:layout_height="47dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:entries="@array/terms"
-        android:layout_below="@+id/unknown_ECTS"
-        android:layout_alignStart="@+id/unknown_ECTS" />
+        android:layout_below="@+id/unknown_ECTSLayout"
+        android:layout_alignStart="@+id/unknown_ECTSLayout" />
 
     <Button
         android:id="@+id/unknown_butt_add"
         style="@android:style/Widget.Material.ButtonBar.AlertDialog"
         android:layout_width="88dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
+        android:layout_alignEnd="@+id/unknown_butt_modules"
         android:layout_below="@+id/unknown_butt_modules"
         android:text="Add"
         android:textAllCaps="false"
@@ -33,7 +92,7 @@
         style="@android:style/Widget.Material.ButtonBar.AlertDialog"
         android:layout_width="88dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
+        android:layout_alignStart="@+id/unknown_butt_modules"
         android:layout_below="@+id/unknown_butt_modules"
         android:text="Cancel"
         android:textAllCaps="false"
@@ -42,7 +101,7 @@
     <Button
         android:id="@+id/unknown_butt_modules"
         style="@android:style/Widget.Material.ButtonBar.AlertDialog"
-        android:layout_width="240dp"
+        android:layout_width="248dp"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/unknown_spinner"
@@ -52,43 +111,4 @@
         android:text="In Modules"
         android:textAppearance="@android:style/TextAppearance.Material.Large" />
 
-    <EditText
-        android:id="@+id/unknown_ECTS"
-        android:layout_width="240dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:ems="10"
-        android:hint="ECTS"
-        android:inputType="number"
-        android:textAppearance="@android:style/TextAppearance.Material.Large"
-        android:layout_below="@+id/unknown_courseTitle"
-        android:layout_alignParentStart="true" />
-
-    <EditText
-        android:id="@+id/unknown_courseTitle"
-        android:layout_width="240dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:ems="10"
-        android:hint="@string/select_course"
-        android:inputType="text"
-        android:textAppearance="@android:style/TextAppearance.Material.Large"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
-
-    <EditText
-        android:id="@+id/unknown_year"
-        android:layout_width="152dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:ems="10"
-        android:hint="Year"
-        android:inputType="number"
-        android:textAppearance="@android:style/TextAppearance.Material.Large"
-        android:layout_below="@+id/unknown_ECTS"
-        android:layout_alignEnd="@+id/unknown_ECTS" />
 </RelativeLayout>
