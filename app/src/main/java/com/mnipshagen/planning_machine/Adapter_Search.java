@@ -304,7 +304,7 @@ public class Adapter_Search extends RecyclerCursorAdapter<Adapter_Search.ViewHol
                     // Set the animation on the custom view
                     expanded_content.startAnimation(a);
                 }
-                valueAnimator.setDuration(200);
+                valueAnimator.setDuration(300);
                 valueAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
                 valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                     public void onAnimationUpdate(ValueAnimator animation) {
@@ -322,13 +322,16 @@ public class Adapter_Search extends RecyclerCursorAdapter<Adapter_Search.ViewHol
                     mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_TERM)),
                     mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_YEAR))
                             .substring(2));
+        termYear.setText(termandyear);
 
         name.setText(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_COURSE)));
+
         String credits =
                 mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_ECTS)) + " ECTS";
         ects.setText(credits);
+
         studipCode.setText(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_CODE)));
-        termYear.setText(termandyear);
+
         String lectureInfo = "";
         String courseType = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_TYPE));
         courseType = courseType==null ? "":courseType;
@@ -351,8 +354,13 @@ public class Adapter_Search extends RecyclerCursorAdapter<Adapter_Search.ViewHol
         }
         lectureInfo = lectureInfo.concat(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_FIELDS_STR)));
         fields.setText(lectureInfo);
+
         lecturers.setText("taught by " + mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_TEACHERS_STR)));
-        description.setText(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_COURSE_DESC)));
+        String descr = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_COURSE_DESC));
+        if (descr.equals("") || descr == null || descr.equals("null")) {
+            descr = "No description available.";
+        }
+        description.setText(descr);
     }
 
 }

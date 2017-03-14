@@ -1,38 +1,44 @@
 package com.mnipshagen.planning_machine;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.annotation.BoolRes;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputLayout;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 
-import com.mnipshagen.planning_machine.DataProviding.Async_Search;
+import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 
 /**
  * Created by nipsh on 19/02/2017.
  */
 
-public class Activity_Search extends Activity_Base {
+public class Activity_Search extends Activity_Base implements LoaderManager.LoaderCallbacks<Cursor> {
     // hold a reference to our recycler view
     private RecyclerView rv;
     private Spinner moduleList;
     private EditText courseTitle;
+    private boolean isExpanded;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +46,7 @@ public class Activity_Search extends Activity_Base {
         setContentView(R.layout.activity_search);
         final AppBarLayout mAppBar = (AppBarLayout) findViewById(R.id.search_app_bar);
         setActionBarTitle(R.string.title_search);
+        isExpanded = false;
 
         moduleList = (Spinner) findViewById(R.id.searchSpinnerModule);
         courseTitle = (EditText) findViewById(R.id.searchCourseTitle);
@@ -68,6 +75,92 @@ public class Activity_Search extends Activity_Base {
             }
         });
 
+        final ImageButton expand = (ImageButton) findViewById(R.id.search_expand);
+        expand.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Spinner terms = (Spinner) findViewById(R.id.searchSpinnerTerm);
+                final TextInputLayout taughtBy = (TextInputLayout) findViewById(R.id.searchTaughtByLayout);
+                final LinearLayout years = (LinearLayout) findViewById(R.id.yearLayout);
+
+                if(!isExpanded) {
+                    isExpanded = true;
+
+                    Animation a = new AlphaAnimation(0f, 1f);
+                    a.setDuration(300);
+                    a.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            terms.setVisibility(View.VISIBLE);
+                            taughtBy.setVisibility(View.VISIBLE);
+                            years.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+                        }
+                    });
+                    mAppBar.startAnimation(a);
+
+                    ValueAnimator va;
+                    int oldH = mAppBar.getHeight();
+                    int newH = (int) (mAppBar.getHeight() * 1.8);
+                    va = ValueAnimator.ofInt(oldH, newH);
+                    va.setDuration(300);
+                    va.setInterpolator(new AccelerateDecelerateInterpolator());
+                    va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        @Override
+                        public void onAnimationUpdate(ValueAnimator animation) {
+                            mAppBar.getLayoutParams().height = (Integer) animation.getAnimatedValue();
+                            mAppBar.requestLayout();
+                        }
+                    });
+                    va.start();
+                } else {
+                    isExpanded = false;
+
+                    Animation a = new AlphaAnimation(1f, 0f);
+                    a.setDuration(300);
+                    a.setFillBefore(true);
+                    a.setFillAfter(true);
+                    a.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {}
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            terms.setVisibility(View.GONE);
+                            taughtBy.setVisibility(View.GONE);
+                            years.setVisibility(View.GONE);
+                            mAppBar.clearAnimation();
+                        }
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {}
+                    });
+                    mAppBar.startAnimation(a);
+
+                    ValueAnimator va;
+                    int oldH = mAppBar.getHeight();
+                    int newH = (int) (mAppBar.getHeight() / 1.8);
+                    va = ValueAnimator.ofInt(oldH, newH);
+                    va.setDuration(300);
+                    va.setInterpolator(new AccelerateDecelerateInterpolator());
+                    va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        @Override
+                        public void onAnimationUpdate(ValueAnimator animation) {
+                            mAppBar.getLayoutParams().height = (Integer) animation.getAnimatedValue();
+                            mAppBar.requestLayout();
+                        }
+                    });
+                    va.start();
+                }
+
+            }
+        });
+
         rv = (RecyclerView) findViewById(R.id.searchRecycler);
         // make it pretty make it nice
         rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
@@ -76,14 +169,6 @@ public class Activity_Search extends Activity_Base {
         Adapter_Search adapter = new Adapter_Search(null, this);
         rv.setAdapter(adapter);
         rv.setLayoutManager(new LinearLayoutManager(this));
-//        rv.setOnFlingListener(new RecyclerView.OnFlingListener() {
-//            @Override
-//            public boolean onFling(int velocityX, int velocityY) {
-//                if (velocityY < 0)
-//                    mAppBar.setExpanded(true);
-//                return false;
-//            }
-//        });
 
         // on fab click start the search
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.search_FAB);
@@ -109,23 +194,18 @@ public class Activity_Search extends Activity_Base {
         }
 
         Switch switchComp = (Switch) findViewById(R.id.searchSwitchCompulsory);
+        Spinner terms = (Spinner) findViewById(R.id.searchSpinnerTerm);
+        EditText taughtBy = (EditText) findViewById(R.id.searchTaughtBy);
+        EditText yearFrom = (EditText) findViewById(R.id.searchYearFrom);
+        EditText yearTo = (EditText) findViewById(R.id.searchYearTo);
 
         // save module which we want to search for and course name
         String module = moduleList.getSelectedItem().toString();
         String course = courseTitle.getText().toString().replace(" ","%");
-        // all the columns to search for
-        String[] columns = {
-                SQL_Database.COURSE_COLUMN_ID,
-                SQL_Database.COURSE_COLUMN_COURSE,
-                SQL_Database.COURSE_COLUMN_COURSE_DESC,
-                SQL_Database.COURSE_COLUMN_ECTS,
-                SQL_Database.COURSE_COLUMN_TERM,
-                SQL_Database.COURSE_COLUMN_YEAR,
-                SQL_Database.COURSE_COLUMN_CODE,
-                SQL_Database.COURSE_COLUMN_TYPE,
-                SQL_Database.COURSE_COLUMN_INFIELD_TYPE,
-                SQL_Database.COURSE_COLUMN_TEACHERS_STR,
-                SQL_Database.COURSE_COLUMN_FIELDS_STR   };
+        String term = terms.getSelectedItem().toString();
+        String teachers = taughtBy.getText().toString().replace(" ","%").replace(",","%");
+        String yearStart = yearFrom.getText().toString();
+        String yearEnd = yearTo.getText().toString();
 
         // selection string dependent on the filters
         String selection = "";
@@ -147,36 +227,78 @@ public class Activity_Search extends Activity_Base {
             }
             selection = selection.concat(SQL_Database.COURSE_COLUMN_INFIELD_TYPE + " = 'PM'");
         }
-        // and start the background search. background to keep the UI thread from being stuck by it
-        Async_Search search = new Async_Search(this);
-        search.execute(columns, new String[]{selection});
-    }
-    /**
-     * once the async search is done this is called
-     * @param results the cursor which holds the results
-     */
-    public void onSearchCompleted(Cursor results) {
-        ((Adapter_Search) rv.getAdapter()).changeCursor(results);
 
-//        CollapsingToolbarLayout mToolbar = (CollapsingToolbarLayout) findViewById(R.id.search_toolbar);
-//        AppBarLayout mAppBar = (AppBarLayout) findViewById(R.id.search_app_bar);
-//
-//        AppBarLayout.LayoutParams toolbarLayoutParams = (AppBarLayout.LayoutParams) mToolbar.getLayoutParams();
-//        CoordinatorLayout.LayoutParams appBarLayoutParams = (CoordinatorLayout.LayoutParams) mAppBar.getLayoutParams();
-//
-//        Log.v("SEARCH", "Last visible item pos: " + ((LinearLayoutManager)rv.getLayoutManager()).findLastCompletelyVisibleItemPosition());
-//        Log.v("SEARCH", "Cursor count: " + results.getCount());
-//
-//        if (((LinearLayoutManager)rv.getLayoutManager()).findLastCompletelyVisibleItemPosition() == results.getCount() - 1) {
-//            appBarLayoutParams.setBehavior(null);
-//            toolbarLayoutParams.setScrollFlags(0);
-//        } else {
-//            mAppBar.setExpanded(false);
-//            toolbarLayoutParams.setScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS | AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP);
-//            appBarLayoutParams.setBehavior(new AppBarLayout.Behavior());
-//        }
-//
-//        mToolbar.setLayoutParams(toolbarLayoutParams);
-//        mAppBar.setLayoutParams(appBarLayoutParams);
+        if (terms.getSelectedItemPosition() != 0) {
+            if( !selection.equals("")) {
+                selection = selection.concat(" AND ");
+            }
+            selection = selection.concat(SQL_Database.COURSE_COLUMN_TERM + " = '" + term + "'");
+        }
+
+        if (!teachers.equals("")) {
+            if( !selection.equals("")) {
+                selection = selection.concat(" AND ");
+            }
+            selection = selection.concat(SQL_Database.COURSE_COLUMN_TEACHERS_STR + " LIKE '%" + teachers + "%'");
+        }
+
+        if (!yearStart.equals("")){
+            if( !selection.equals("")) {
+                selection = selection.concat(" AND ");
+            }
+            selection = selection.concat(SQL_Database.COURSE_COLUMN_YEAR + ">= ' " + yearStart + "'");
+        }
+
+        if (!yearEnd.equals("")){
+            if( !selection.equals("")) {
+                selection = selection.concat(" AND ");
+            }
+            selection = selection.concat(SQL_Database.COURSE_COLUMN_YEAR + "<= '" + yearEnd + "'");
+        }
+        Log.v("SEARCHY SEARCH", "We built this selection: " + selection);
+
+        Bundle args = new Bundle();
+        args.putString("selection", selection);
+        getSupportLoaderManager().destroyLoader(0);
+        getSupportLoaderManager().initLoader(0, args, this);
+
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        switch (id) {
+            case 0:
+                String selection = "";
+                if (args != null) {
+                    selection = args.getString("selection");
+                }
+                String[] columns = SQL_Database.COURSE_COLUMNS;
+
+                return new CursorLoader(this, DataProvider.COURSE_DB_URI,
+                                        columns,
+                                        selection,
+                                        null,
+                                        SQL_Database.COURSE_COLUMN_YEAR + " DESC");
+            default:
+                throw new IllegalArgumentException("unknown cursor id");
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        switch (loader.getId()){
+            case 0:
+                ((Adapter_Search) rv.getAdapter()).changeCursor(data);
+                break;
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        switch (loader.getId()) {
+            case 0:
+                ((Adapter_Search) rv.getAdapter()).changeCursor(null);
+                break;
+        }
     }
 }
