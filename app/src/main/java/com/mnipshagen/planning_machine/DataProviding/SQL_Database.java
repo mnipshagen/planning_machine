@@ -47,14 +47,16 @@ public class SQL_Database extends SQLiteAssetHelper {
     public final static String MODULE_COLUMN_ID = "_id";
     public final static String MODULE_COLUMN_NAME = "name";
     public final static String MODULE_COLUMN_CODE = "code";
+    public final static String MODULE_COLUMN_SIGNIFICANT = "significant";
     public final static String MODULE_COLUMN_ECTS_COMP = "ects_comp";
     public final static String MODULE_COLUMN_ECTS_OPTCOMP = "ects_optcomp";
     public final static String MODULE_COLUMN_ECTS = "ects_current";
     public final static String MODULE_COLUMN_IPECTS = "ects_inprogress";
     public final static String MODULE_COLUMN_GRADE = "grade";
+    public final static String MODULE_COLUMN_STATE = "state";
     public final static String[] MODULE_COLUMNS = {MODULE_COLUMN_ID, MODULE_COLUMN_NAME, MODULE_COLUMN_CODE,
-            MODULE_COLUMN_ECTS_COMP, MODULE_COLUMN_ECTS_OPTCOMP, MODULE_COLUMN_ECTS, MODULE_COLUMN_IPECTS,
-            MODULE_COLUMN_GRADE};
+            MODULE_COLUMN_SIGNIFICANT, MODULE_COLUMN_ECTS_COMP, MODULE_COLUMN_ECTS_OPTCOMP,
+            MODULE_COLUMN_ECTS, MODULE_COLUMN_IPECTS, MODULE_COLUMN_GRADE, MODULE_COLUMN_STATE};
 
     // the table "courses" and all its columns, are mostly duplicates of "course_db"
     // added columns for module, grade, graph, etc...
