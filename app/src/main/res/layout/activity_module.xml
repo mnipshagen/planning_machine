@@ -2,6 +2,7 @@
 <android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
@@ -23,10 +24,50 @@
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
 
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.2"
+                    android:orientation="vertical">
+
+                    <ToggleButton
+                        android:id="@+id/toggleSignificance"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_margin="16dp"
+                        android:layout_marginBottom="0dp"
+                        android:background="@drawable/button_significant"
+                        android:textOff=""
+                        android:textOn=""
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintDimensionRatio="h,1:1"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="0.19999999" />
+
+                    <ToggleButton
+                        android:id="@+id/toggleOral"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_margin="16dp"
+                        android:layout_marginBottom="15dp"
+                        android:layout_marginTop="0dp"
+                        android:background="@drawable/button_oral"
+                        android:textOff=""
+                        android:textOn=""
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintDimensionRatio="h,1:1"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintVertical_bias="0.8" />
+                </android.support.constraint.ConstraintLayout>
+
                 <com.github.mikephil.charting.charts.PieChart
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
+                    android:layout_weight="0.8"
                     android:id="@+id/modulePieChart"/>
 
             </LinearLayout>

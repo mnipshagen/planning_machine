@@ -20,6 +20,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.github.mikephil.charting.data.PieData;
@@ -69,6 +71,8 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         comp_credits = intent.getIntExtra("compECTS", 0);
         // to complete the optional compulsory part
         optcomp_credits = intent.getIntExtra("optcompECTS", 0);
+        // and the significane
+        boolean significant = intent.getBooleanExtra("significant", false);
         // and the name of the module
         final String name = intent.getStringExtra("Name");
         // set the name as the title of the activity
@@ -168,7 +172,45 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                 dialog.show(getSupportFragmentManager(), "addUnlistedCourse");
             }
         });
-        FloatingActionButton fab_setSigniicane = (FloatingActionButton) findViewById(R.id.moduleSetSignificance);
+
+        final boolean openStudies = module_code.equals("OPEN");
+
+        final FloatingActionButton fab_setSignificane = (FloatingActionButton) findViewById(R.id.moduleSetSignificance);
+        final ToggleButton markSignificant = (ToggleButton) findViewById(R.id.toggleSignificance);
+        markSignificant.setChecked(significant);
+        fab_setSignificane.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!openStudies) {
+                    if (ModuleTools.toggleSignificant(module_code, Activity_Module.this)) {
+                        Toast.makeText(Activity_Module.this, "State of significane was changed", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(Activity_Module.this, "Could not change state. Do you already have 5 significant modules?", Toast.LENGTH_LONG).show();
+                        markSignificant.toggle();
+                    }
+                } else {
+                    Toast.makeText(Activity_Module.this, "Open Studies cannot be marked significant.", Toast.LENGTH_SHORT).show();
+                    markSignificant.toggle();
+                }
+            }
+        });
+
+        markSignificant.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!openStudies) {
+                    if (ModuleTools.toggleSignificant(module_code, Activity_Module.this)) {
+                        Toast.makeText(Activity_Module.this, "State of significane was changed", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(Activity_Module.this, "Could not change state. Do you already have 5 significant modules?", Toast.LENGTH_LONG).show();
+                        markSignificant.toggle();
+                    }
+                } else {
+                    Toast.makeText(Activity_Module.this, "Open Studies cannot be marked significant.", Toast.LENGTH_SHORT).show();
+                    markSignificant.toggle();
+                }
+            }
+        });
 
 
         /* And now to the lower part! */
