@@ -5,8 +5,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
 
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
@@ -25,8 +27,6 @@ public class ModuleTools {
     private static final String col_id = SQL_Database.COURSES_COLUMN_ID;
     private static final String col_grade = SQL_Database.COURSES_COLUMN_GRADE;
     private static final String col_mod = SQL_Database.COURSES_COLUMN_MODULE;
-
-    private static int significantModules = 0;
 
     public static void setCoursePassed(long id, Context context){
         sqliteStateChange(2, 0.0, id, context);
@@ -265,28 +265,36 @@ public class ModuleTools {
                             new String[] {SQL_Database.MODULE_COLUMN_SIGNIFICANT},
                             SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",
                             null, null);
+        Cursor s = cr.query(module_table,
+                            new String[] {SQL_Database.MODULE_COLUMN_CODE},
+                            SQL_Database.MODULE_COLUMN_SIGNIFICANT + "= 1",
+                            null, null);
+        Log.v("ModuleTools:", "ToogleSignificance Cursor Dump!: " + DatabaseUtils.dumpCursorToString(s));
         c.moveToFirst();
 
         ContentValues cv = new ContentValues();
         int sign = c.getInt(0);
         switch (sign) {
             case 0:
-                if (significantModules >= 5) {
+                if (s.getCount() >= 5) {
                     return false;
                 }
+                Log.v("ModuleTools", "AND MAKE IT RELEVANT");
                 cv.put(SQL_Database.MODULE_COLUMN_SIGNIFICANT,1);
-                significantModules ++;
                 cr.update(module_table,cv,SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",null);
                 c.close();
+                s.close();
                 return true;
             case 1:
+                Log.v("ModuleTools", "not relevant anymore");
                 cv.put(SQL_Database.MODULE_COLUMN_SIGNIFICANT, 0);
-                significantModules --;
                 cr.update(module_table,cv,SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",null);
                 c.close();
+                s.close();
                 return true;
             default:
                 c.close();
+                s.close();
                 return false;
         }
     }

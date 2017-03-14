@@ -173,28 +173,38 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
     }
 
     private void sortIn(float g, List<Float> grades, boolean significant, List<Boolean> signs) {
-        if (significant){
-            for (int i=0; i < grades.size(); i++) {
-                if (!signs.get(i)){
+        if (grades.size() != signs.size()) {
+            throw new RuntimeException("ToggleSignificant: More or less grades than states.");
+        }
+        if (grades.size() > 5 || signs.size() > 5) {
+            throw new RuntimeException("ToggleSignificant: More than 5 modules. Should not work");
+        }
+        if (g == 0) return;
+        if (grades.size() < 5) {
+            int i = 0;
+            while (i < grades.size() && grades.get(i) > g) {
+                i++;
+            }
+            grades.add(i, g);
+            signs.add(i,significant);
+        }else {
+            for (int i = 4; i >= 0; i--) {
+                if (significant && !signs.get(i)) {
                     grades.set(i, g);
                     signs.set(i, true);
                     break;
-                }
-            }
-        } else {
-            if (g == 0f) return;
-            for(int i=0; i< grades.size(); i++) {
-                if (g < grades.get(i)) {
-                    grades.add(i, g);
-                    signs.add(i, false);
+                } else if (g < grades.get(i) && !significant && !signs.get(i)){
+                    grades.set(i, g);
+                    signs.set(i, false);
                     break;
                 }
             }
-            if (grades.size() > 5) grades.remove(grades.size() - 1);
-            if (signs.size() > 5) signs.remove(grades.size() - 1);
-            Log.v("OVERVIEW", "Sorting " + g + " brought us:" + grades.toString());
-            Log.v("OVERVIEW", "Sorting " + g + " brought us:" + signs.toString());
         }
+
+        if (grades.size() > 5) grades.remove(grades.size() - 1);
+        if (signs.size() > 5) signs.remove(grades.size() - 1);
+        Log.v("OVERVIEW", "Sorting " + g + " brought us:" + grades.toString());
+        Log.v("OVERVIEW", "Sorting " + significant + " brought us:" + signs.toString());
     }
 
     @Override
