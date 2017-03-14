@@ -100,7 +100,7 @@ public class SQL_Database extends SQLiteAssetHelper {
         return sInstance;
     }
 
-    // use the constructor from "SQLiteAsse tHelper" (see github) to create the databse from the asset
+    // use the constructor from "SQLiteAsse tHelper" (see ic_github) to create the databse from the asset
     private SQL_Database(Context context) {
         super(context, DB_NAME, null, DATABASE_VERSION);
     }
