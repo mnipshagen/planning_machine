@@ -58,30 +58,6 @@ public class Activity_Base extends AppCompatActivity{
         initNavigationDrawer();
     }
 
-    @Override
-    public void onBackPressed() {
-        if( this.getClass().getSimpleName().equals("Activity_Overview")) {
-            FragmentManager fm = getSupportFragmentManager();
-            for(int i = 0; i < fm.getBackStackEntryCount(); ++i) {
-                fm.popBackStack();
-            }
-            finish();
-        }
-        else {
-            init(1);
-        }
-    }
-
-//    @Override
-//    public void onBackPressed() {
-//        if(!this.getClass().getSimpleName().equals("Activity_Overview")){
-//            init(1);
-//        }
-//        else {
-//            super.onBackPressed();
-//        }
-//    }
-
     /**
      * takes care of initialising the navigation drawer, with an listener for item clicks,
      * which initialises the chosen activity
@@ -200,11 +176,10 @@ public class Activity_Base extends AppCompatActivity{
             case 4:
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.ikw.uos.de"));
                 startActivity(browserIntent);
-                //TODO call activity
                 break;
             // About was selected
             case 5:
-                if(!this.getClass().getSimpleName().equals("Activity_About")) {
+                if (!this.getClass().getSimpleName().equals("Activity_About")) {
                     start = new Intent(this, Activity_About.class);
                 }
                 break;

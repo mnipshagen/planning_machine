@@ -1,30 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="1">
 
-    <EditText
+    <ImageView
+        android:id="@+id/about_icon"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="16dp"
+        app:srcCompat="@drawable/ic_splash" />
+
+    <TextView
+        android:id="@+id/about_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text"
-        android:ems="10"
-        android:id="@+id/debugedit"
-        android:hint="tipp mich" />
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="8dp"
+        android:lineSpacingExtra="4sp"
+        android:text="@string/about_description"
+        android:textAppearance="@android:style/TextAppearance.Material.Widget.TextView" />
 
-    <ScrollView
+    <ImageView
+        android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:srcCompat="?attr/dividerHorizontal" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" >
+    <TextView
+        android:id="@+id/about_github_link"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="8dp"
+        android:drawablePadding="8dp"
+        android:drawableStart="@drawable/ic_github"
+        android:gravity="center"
+        android:text="@string/about_github"
+        android:textAppearance="@android:style/TextAppearance.Material.Menu" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/debugfield" />
-        </LinearLayout>
-    </ScrollView>
+    <TextView
+        android:id="@+id/about_mail_link"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="8dp"
+        android:autoLink="email"
+        android:drawablePadding="8dp"
+        android:drawableStart="@drawable/ic_mail_outline"
+        android:gravity="center"
+        android:text="mnipshagen@uni-osnabrueck.de"
+        android:textAppearance="@android:style/TextAppearance.Material.Menu" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:srcCompat="?attr/dividerHorizontal" />
+
+    <TextView
+        android:id="@+id/about_libaries_head"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="16dp"
+        android:text="3rd Party Libraries used:"
+        android:textAppearance="@android:style/TextAppearance.Material.Widget.Toolbar.Subtitle" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/about_library_card_host"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </LinearLayout>

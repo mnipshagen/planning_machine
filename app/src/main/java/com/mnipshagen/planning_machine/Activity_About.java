@@ -1,14 +1,21 @@
 package com.mnipshagen.planning_machine;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.view.KeyEvent;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
-import android.widget.EditText;
+import android.view.animation.Animation;
+import android.view.animation.OvershootInterpolator;
+import android.view.animation.RotateAnimation;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+import com.mikepenz.aboutlibraries.Libs;
+import com.mikepenz.aboutlibraries.entity.Library;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The Activity corresponding to the 'About' drawer option.
@@ -22,36 +29,37 @@ public class Activity_About extends Activity_Base {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
         setActionBarTitle("About aka debug for now");
-        final TextView outer = (TextView) findViewById(R.id.debugfield);
-        SQLiteDatabase db = SQL_Database.getInstance(this).getReadableDatabase();
-        outer.setText(getTableAsString(db, SQL_Database.COURSES_TABLE_NAME));
 
-        EditText typer = (EditText) findViewById(R.id.debugedit);
-        typer.setOnKeyListener(new View.OnKeyListener() {
+        ((TextView)findViewById(R.id.about_description)).setMovementMethod(LinkMovementMethod.getInstance());
+        ((TextView)findViewById(R.id.about_github_link)).setMovementMethod(LinkMovementMethod.getInstance());
+        findViewById(R.id.about_icon).setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                outer.setText(outer.getText() + "\n It was pressed Key: " + keyCode);
+            public void onClick(View v) {
+                RotateAnimation anim = new RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+                anim.setInterpolator(new OvershootInterpolator());
+                anim.setDuration(1200);
 
-                return true;
+                final ImageView icon = (ImageView) findViewById(R.id.about_icon);
+                icon.startAnimation(anim);
             }
         });
-    }
 
-    public String getTableAsString(SQLiteDatabase db, String tableName) {
-        String tableString = String.format("Table %s:\n", tableName);
-        Cursor allRows  = db.rawQuery("SELECT * FROM " + tableName, null);
-        if (allRows.moveToFirst() ){
-            String[] columnNames = allRows.getColumnNames();
-            do {
-                for (String name: columnNames) {
-                    tableString += String.format("%s: %s\n", name,
-                            allRows.getString(allRows.getColumnIndex(name)));
-                }
-                tableString += "\n";
+        Libs libs = new Libs(this);
+        List<Library> libraryList = new ArrayList<>();
 
-            } while (allRows.moveToNext());
-        }
+        Library sqlite = new Library();
+        sqlite.setAuthor("Jeff Gilfelt");
+        sqlite.setAuthorWebsite("https://github.com/jgilfelt");
+        sqlite.setLibraryName("SQLite Asset-helper");
+        sqlite.setLibraryDescription("An Android helper class to manage database creation and version management using an application's raw asset files.");
 
-        return tableString;
+        libraryList.add(libs.getLibrary("MPAndroidChart"));
+        libraryList.add(sqlite);
+        libraryList.add(libs.getLibrary("Android Floating Action Button"));
+        libraryList.add(libs.getLibrary("AboutLibraries"));
+
+        RecyclerView card_host = (RecyclerView) findViewById(R.id.about_library_card_host);
+        card_host.setLayoutManager(new LinearLayoutManager(this));
+        card_host.setAdapter(new Adapter_About(libraryList, this));
     }
 }
