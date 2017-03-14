@@ -44,9 +44,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         rv = (RecyclerView) findViewById(R.id.overviewRecycler);
         // dump the cursor into the console for debug reasons
         // Log.v("Cursor", DatabaseUtils.dumpCursorToString(cursor));
-        if (cursor == null) {
-            getSupportLoaderManager().initLoader(0, null, this);
-        }
+
         // MAKE IT PRETTY MAKE IT NICE
         rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         rv.setItemAnimator(new DefaultItemAnimator());
@@ -67,11 +65,13 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
                         String code = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
                         int compECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_COMP));
                         int optcompECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_OPTCOMP));
+                        boolean significant = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1;
                         Intent intent = new Intent(Activity_Overview.this, Activity_Module.class);
                         intent.putExtra("Name",name);
                         intent.putExtra("Module", code);
                         intent.putExtra("compECTS", compECTS);
                         intent.putExtra("optcompECTS", optcompECTS);
+                        intent.putExtra("significant", significant);
                         startActivity(intent);
                     }
 
@@ -80,6 +80,14 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
                         //TODO
                     }
                 }));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (cursor == null) {
+            getSupportLoaderManager().initLoader(0, null, this);
+        }
     }
 
     private void initGraph() {
@@ -95,10 +103,12 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         }
         // find the 5 best grades! (for now until other algorithms are implemented)
         List<Float> grades = new ArrayList<>();
+        List<Boolean> significance = new ArrayList<>();
         cursor.moveToPosition(-1);
         while(cursor.moveToNext()){
             float g = cursor.getFloat(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE));
-            sortIn(g, grades);
+            boolean sign = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1;
+            sortIn(g, grades, sign, significance);
         }
         float grade = 0f;
         for(float g : grades) grade += g;
@@ -162,13 +172,29 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         graph.setEntryLabelColor(R.color.half_black);
     }
 
-    private void sortIn(float g, List<Float> grades) {
-        if (g == 0f) return;
-        int i = 0;
-        while (i < grades.size() && g < grades.get(i++));
-        grades.add(i, g);
-        if (grades.size() > 5) grades.remove(grades.size() -1);
-        Log.v("OVERVIEW", "Sorting " + g + " brought us:" + grades.toString());
+    private void sortIn(float g, List<Float> grades, boolean significant, List<Boolean> signs) {
+        if (significant){
+            for (int i=0; i < grades.size(); i++) {
+                if (!signs.get(i)){
+                    grades.set(i, g);
+                    signs.set(i, true);
+                    break;
+                }
+            }
+        } else {
+            if (g == 0f) return;
+            for(int i=0; i< grades.size(); i++) {
+                if (g < grades.get(i)) {
+                    grades.add(i, g);
+                    signs.add(i, false);
+                    break;
+                }
+            }
+            if (grades.size() > 5) grades.remove(grades.size() - 1);
+            if (signs.size() > 5) signs.remove(grades.size() - 1);
+            Log.v("OVERVIEW", "Sorting " + g + " brought us:" + grades.toString());
+            Log.v("OVERVIEW", "Sorting " + g + " brought us:" + signs.toString());
+        }
     }
 
     @Override
@@ -178,6 +204,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
                 String[] projection = SQL_Database.MODULE_COLUMNS;
                 return new CursorLoader(this, DataProvider.MODULE_DB_URI,
                                     projection, null, null,
+                                    SQL_Database.MODULE_COLUMN_SIGNIFICANT + " DESC, " +
                                     SQL_Database.MODULE_COLUMN_GRADE + " ASC");
             case 1:
             default:

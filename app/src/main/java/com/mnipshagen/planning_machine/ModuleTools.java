@@ -26,6 +26,8 @@ public class ModuleTools {
     private static final String col_grade = SQL_Database.COURSES_COLUMN_GRADE;
     private static final String col_mod = SQL_Database.COURSES_COLUMN_MODULE;
 
+    private static int significantModules = 0;
+
     public static void setCoursePassed(long id, Context context){
         sqliteStateChange(2, 0.0, id, context);
     }
@@ -61,6 +63,19 @@ public class ModuleTools {
         c.close();
         mCR.delete(courses_table, col_id + "=" + id , null);
         refreshModule(m_code, context);
+    }
+
+    public static void moveCourse(String code, long id, Context context) {
+        ContentResolver mCR = context.getContentResolver();
+        Cursor c = mCR.query(courses_table, new String[]{col_mod}, col_id + "=" + id, null, null);
+        c.moveToFirst();
+        String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
+        c.close();
+        ContentValues cv = new ContentValues();
+        cv.put(col_mod, code);
+        mCR.update(courses_table, cv, col_id + "=" + id, null);
+        refreshModule(m_code, context);
+        refreshModule(code, context);
     }
 
     public static String courseTypeConv(String type) {
@@ -181,7 +196,7 @@ public class ModuleTools {
             code = "NI";
         }else if (m.contains("psych")) {
             code = "KNP";
-        }else if (m.contains("lingu")) {
+        }else if (m.contains("ingui")) {
             code = "CL";
         }else if (m.contains("bio") || m.contains("rosci")) {
             code = "NW";
@@ -244,16 +259,35 @@ public class ModuleTools {
         }
     }
 
-    public static void moveCourse(String code, long id, Context context) {
-        ContentResolver mCR = context.getContentResolver();
-        Cursor c = mCR.query(courses_table, new String[]{col_mod}, col_id + "=" + id, null, null);
+    public static boolean toggleSignificant(String code, Context context) {
+        ContentResolver cr = context.getContentResolver();
+        Cursor c = cr.query(module_table,
+                            new String[] {SQL_Database.MODULE_COLUMN_SIGNIFICANT},
+                            SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",
+                            null, null);
         c.moveToFirst();
-        String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
-        c.close();
+
         ContentValues cv = new ContentValues();
-        cv.put(col_mod, code);
-        mCR.update(courses_table, cv, col_id + "=" + id, null);
-        refreshModule(m_code, context);
-        refreshModule(code, context);
+        int sign = c.getInt(0);
+        switch (sign) {
+            case 0:
+                if (significantModules >= 5) {
+                    return false;
+                }
+                cv.put(SQL_Database.MODULE_COLUMN_SIGNIFICANT,1);
+                significantModules ++;
+                cr.update(module_table,cv,SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",null);
+                c.close();
+                return true;
+            case 1:
+                cv.put(SQL_Database.MODULE_COLUMN_SIGNIFICANT, 0);
+                significantModules --;
+                cr.update(module_table,cv,SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",null);
+                c.close();
+                return true;
+            default:
+                c.close();
+                return false;
+        }
     }
 }
