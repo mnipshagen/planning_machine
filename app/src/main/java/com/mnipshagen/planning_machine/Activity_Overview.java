@@ -1,17 +1,28 @@
 package com.mnipshagen.planning_machine;
 
+import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.Toast;
 
+import com.getbase.floatingactionbutton.FloatingActionButton;
+import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
@@ -32,7 +43,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
     private final int THESIS_CREDITS = 12;
     private Cursor cursor;
     private RecyclerView rv;
-    private Adapter_Overview adapter;
+    private RecyclerCursorAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,11 +53,9 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
 
         /* The lower half is now */
         rv = (RecyclerView) findViewById(R.id.overviewRecycler);
-        // dump the cursor into the console for debug reasons
-        // Log.v("Cursor", DatabaseUtils.dumpCursorToString(cursor));
 
         // MAKE IT PRETTY MAKE IT NICE
-        rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+//        rv.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         rv.setItemAnimator(new DefaultItemAnimator());
         // initialise the adapter
         adapter = new Adapter_Overview(cursor, this);
@@ -55,39 +64,111 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
         rv.setLayoutManager(mLayoutManager);
         // when we touch the module entries something should happen
-        rv.addOnItemTouchListener(
-                new RecyclerItemClickListener(this, rv ,new RecyclerItemClickListener.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        // get all the data for the module from the cursor and open the module
-                        cursor.moveToPosition(position);
-                        String name = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_NAME));
-                        String code = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
-                        int compECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_COMP));
-                        int optcompECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_OPTCOMP));
-                        boolean significant = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1;
-                        Intent intent = new Intent(Activity_Overview.this, Activity_Module.class);
-                        intent.putExtra("Name",name);
-                        intent.putExtra("Module", code);
-                        intent.putExtra("compECTS", compECTS);
-                        intent.putExtra("optcompECTS", optcompECTS);
-                        intent.putExtra("significant", significant);
-                        startActivity(intent);
-                    }
+        final RecyclerItemClickListener mOnTouchListener
+                = new RecyclerItemClickListener(this, rv ,new RecyclerItemClickListener.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                // get all the data for the module from the cursor and open the module
+                cursor.moveToPosition(position);
+                String name = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_NAME));
+                String code = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
+                int compECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_COMP));
+                int optcompECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_OPTCOMP));
+                boolean significant = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1;
+                Intent intent = new Intent(Activity_Overview.this, Activity_Module.class);
+                intent.putExtra("Name",name);
+                intent.putExtra("Module", code);
+                intent.putExtra("compECTS", compECTS);
+                intent.putExtra("optcompECTS", optcompECTS);
+                intent.putExtra("significant", significant);
+                startActivity(intent);
+            }
 
+            @Override
+            public void onLongItemClick(View view, int position) {
+                //TODO
+            }
+        });
+        rv.addOnItemTouchListener(mOnTouchListener);
+
+        final FloatingActionsMenu allFABS = (FloatingActionsMenu) findViewById(R.id.overviewFAB);
+        FloatingActionButton addCourse = (FloatingActionButton) findViewById(R.id.overviewAddCourse);
+        addCourse.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final EditText input = new EditText(Activity_Overview.this);
+                input.setHint("Course title to search for");
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Overview.this);
+                builder.setTitle("Start search:")
+                        .setView(input)
+                        .setPositiveButton("Search", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Intent intent = new Intent(Activity_Overview.this, Activity_Search.class);
+                                intent.putExtra("course_title", input.getText().toString());
+                                intent.putExtra("module_code", "");
+                                intent.putExtra("start", true);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        })
+                        .show();
+            }
+        });
+        FloatingActionButton changeGradeCalc = (FloatingActionButton) findViewById(R.id.overviewChangeGradeCalc);
+        changeGradeCalc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(Activity_Overview.this,
+                            "Choose from different ways to calculate the grade. ... Once they are implemented.",
+                            Toast.LENGTH_SHORT)
+                        .show();
+            }
+        });
+        FloatingActionButton setSignificant = (FloatingActionButton) findViewById(R.id.overviewSetSignificantModules);
+        setSignificant.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rv.removeOnItemTouchListener(mOnTouchListener);
+                final Adapter_Overview_SignificantChoice a = new Adapter_Overview_SignificantChoice(cursor, Activity_Overview.this);
+                rv.setAdapter(a);
+                allFABS.setVisibility(View.GONE);
+                CoordinatorLayout coord = (CoordinatorLayout) findViewById(R.id.overview_coordinator);
+                final FloatingActionButton done = new FloatingActionButton(Activity_Overview.this);
+                done.setImageResource(R.drawable.ic_check);
+                CoordinatorLayout.LayoutParams lp = new CoordinatorLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                lp.gravity = Gravity.BOTTOM;
+                done.setLayoutParams(lp);
+                done.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onLongItemClick(View view, int position) {
-                        //TODO
+                    public void onClick(View v) {
+                        adapter.changeCursor(a.getCursor());
+                        rv.setAdapter(adapter);
+                        rv.addOnItemTouchListener(mOnTouchListener);
+                        done.setVisibility(View.GONE);
+                        allFABS.setVisibility(View.VISIBLE);
                     }
-                }));
+                });
+                coord.addView(done);
+            }
+        });
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (cursor == null) {
-            getSupportLoaderManager().initLoader(0, null, this);
-        }
+        getSupportLoaderManager().destroyLoader(0);
+        getSupportLoaderManager().initLoader(0, null, this);
+        if(cursor != null && !cursor.isClosed())
+            Log.v("OVERVIEW", "On Resume: " + DatabaseUtils.dumpCursorToString(cursor));
+        else
+            Log.v("OVERVIEW", "On Resume: Cursor is null or closed.");
     }
 
     private void initGraph() {
@@ -227,7 +308,8 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         switch (loader.getId()){
             case 0:
                 cursor = data;
-                adapter.changeCursor(data);
+                Log.v("OVERVIEW", "On Loader Finished: " + DatabaseUtils.dumpCursorToString(cursor));
+                ((RecyclerCursorAdapter)rv.getAdapter()).changeCursor(cursor);
                 initGraph();
                 break;
         }

@@ -25,51 +25,43 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_toRightOf="@id/module_pie"
-            android:layout_toLeftOf="@+id/module_significant"
-            android:orientation="vertical"
-            android:layout_marginLeft="16dp"
+            android:layout_alignWithParentIfMissing="true"
             android:layout_centerVertical="true"
-            android:layout_alignWithParentIfMissing="true">
+            android:layout_marginLeft="16dp"
+            android:layout_toLeftOf="@+id/module_toggle"
+            android:layout_toRightOf="@id/module_pie"
+            android:orientation="vertical">
 
             <TextView
-                android:text="TextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:id="@+id/module_name"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-                android:paddingTop="16dp" />
-
-            <TextView
-                android:text="TextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingTop="16dp"
+                android:text="TextView"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body2" />
+
+            <TextView
                 android:id="@+id/module_subname"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:paddingBottom="16dp"/>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="16dp"
+                android:text="TextView"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/module_significant"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
+        <ToggleButton
+            android:id="@+id/module_toggle"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_marginTop="16dp"
-            app:srcCompat="@drawable/ic_star_border" />
-
-        <ImageView
-            android:id="@+id/module_oral"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_alignParentEnd="true"
-            android:layout_below="@+id/module_significant"
-            android:layout_marginBottom="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            app:srcCompat="@drawable/ic_oral_outline" />
+            android:layout_marginBottom="0dp"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/button_significant"
+            android:textOff=""
+            android:textOn="" />
 
     </RelativeLayout>
 

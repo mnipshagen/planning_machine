@@ -6,8 +6,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -21,34 +24,33 @@ import java.util.List;
  * Created by nipsh on 29/01/2017.
  */
 
-public class Adapter_Overview extends RecyclerCursorAdapter<Adapter_Overview.ViewHolder> {
+public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Adapter_Overview_SignificantChoice.ViewHolder> {
 
     private Context mContext;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public com.github.mikephil.charting.charts.PieChart graph;
         public TextView name, subname;
-        public ImageView significant, oral;
+        public ToggleButton significant;
 
         public ViewHolder (View view) {
             super(view);
             graph = (com.github.mikephil.charting.charts.PieChart) view.findViewById(R.id.module_pie);
             name = (TextView) view.findViewById(R.id.module_name);
             subname = (TextView) view.findViewById(R.id.module_subname);
-            significant = (ImageView) view.findViewById(R.id.module_significant);
-            oral = (ImageView) view.findViewById(R.id.module_oral);
+            significant = (ToggleButton) view.findViewById(R.id.module_toggle);
         }
     }
 
-    public Adapter_Overview(Cursor cursor, Context context) {
+    public Adapter_Overview_SignificantChoice(Cursor cursor, Context context) {
        super(cursor);
-        mContext = context;
+       mContext = context;
     }
 
     @Override
     public ViewHolder onCreateViewHolder (ViewGroup parent, int ViewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.card_entry, parent, false);
+                .inflate(R.layout.card_entry_choice_mode, parent, false);
         return new ViewHolder(view);
     }
 
@@ -56,20 +58,33 @@ public class Adapter_Overview extends RecyclerCursorAdapter<Adapter_Overview.Vie
     public void onBindViewHolder (final ViewHolder viewHolder, final Cursor mCursor) {
         com.github.mikephil.charting.charts.PieChart graph;
         TextView name, subname;
-        ImageView significant, oral;
+        final ToggleButton significant;
         name = viewHolder.name;
         subname = viewHolder.subname;
         graph = viewHolder.graph;
         significant = viewHolder.significant;
-        oral = viewHolder.oral;
+
+        significant.setChecked(mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1);
+        final String module_code = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
+        final boolean openStudies = module_code.equals("OPEN");
+        significant.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!openStudies) {
+                    if (!ModuleTools.toggleSignificant(module_code, mContext)) {
+                        Toast.makeText(mContext, "Could not change state. Do you already have 5 significant modules?", Toast.LENGTH_LONG).show();
+                        significant.toggle();
+                    }
+                } else {
+                    Toast.makeText(mContext, "Open Studies cannot be marked significant.", Toast.LENGTH_SHORT).show();
+                    significant.toggle();
+                }
+            }
+        });
 
         name.setText(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_NAME)));
         String credits = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS)) + " ECTS";
         subname.setText(credits);
-
-        if (mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1) {
-            significant.setImageResource(R.drawable.ic_star_filled);
-        }
 
         List<PieEntry> entries = new ArrayList<>();
         // will hold the colours to use
