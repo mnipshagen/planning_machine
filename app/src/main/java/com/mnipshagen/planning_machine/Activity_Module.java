@@ -29,8 +29,8 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
-import com.mnipshagen.planning_machine.Dialogs.addUnlistedCourseDialog;
-import com.mnipshagen.planning_machine.Dialogs.setGradeDialog;
+import com.mnipshagen.planning_machine.Dialogs.AddUnlistedCourseDialog;
+import com.mnipshagen.planning_machine.Dialogs.SetGradeDialog;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +42,7 @@ import java.util.List;
  * corresponding module code
  */
 
-public class Activity_Module extends Activity_Base implements LoaderManager.LoaderCallbacks<Cursor>, setGradeDialog.GradeDialogListener{
+public class Activity_Module extends Activity_Base implements LoaderManager.LoaderCallbacks<Cursor>, SetGradeDialog.GradeDialogListener{
     private String LOGTAG = "ModActiv";
 
     // the cursor which holds the course data
@@ -92,7 +92,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Intent intent = new Intent(Activity_Module.this, Activity_Search.class);
-                                intent.putExtra("course_name", input.getText().toString());
+                                intent.putExtra("course_title", input.getText().toString());
                                 intent.putExtra("module_code", module_code);
                                 intent.putExtra("start", true);
                                 startActivity(intent);
@@ -160,12 +160,13 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                         .show();
             }
         });
+        //TODO
         FloatingActionButton fab_addOral = (FloatingActionButton) findViewById(R.id.moduleAddOral);
         FloatingActionButton fab_addUnlisted = (FloatingActionButton) findViewById(R.id.moduleAddUnlisted);
         fab_addUnlisted.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addUnlistedCourseDialog dialog = new addUnlistedCourseDialog();
+                AddUnlistedCourseDialog dialog = new AddUnlistedCourseDialog();
                 Bundle args = new Bundle();
                 args.putString("module_code", module_code);
                 dialog.setArguments(args);
@@ -251,7 +252,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
 
                             @Override
                             public void onClick(View v) {
-                                setGradeDialog setGrade = new setGradeDialog();
+                                SetGradeDialog setGrade = new SetGradeDialog();
                                 Bundle args = new Bundle();
                                 args.putString("course_name", c_name);
                                 args.putLong("id", id);
