@@ -103,6 +103,13 @@ public class ModuleTools {
         return converted;
     }
 
+    public static void refreshAllModules(Context context) {
+        String [] codes = {"KI", "KNP", "CL", "INF", "MAT", "NI", "NW", "PHIL", "OPEN"};
+        for (String s: codes) {
+            refreshModule(s, context);
+        }
+    }
+
     public static float[] refreshModule(String module_code, Context context){
         ContentResolver mCR = context.getContentResolver();
 

@@ -167,10 +167,7 @@ public class Activity_Base extends AppCompatActivity{
             // Settings was selected
             case 3:
                 if(!this.getClass().getSimpleName().equals("Activity_Settings")){}
-                Toast.makeText(getApplicationContext(),
-                        "Settings Selected",
-                        Toast.LENGTH_SHORT).show();
-                start = new Intent(this, Activity_Overview.class);
+                start = new Intent(this, Activity_Settings.class);
                 break;
             // IKW Webpage was selected
             case 4:
