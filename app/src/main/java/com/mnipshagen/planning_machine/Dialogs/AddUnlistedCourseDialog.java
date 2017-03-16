@@ -20,9 +20,9 @@ import com.mnipshagen.planning_machine.R;
  * Created by nipsh on 12/03/2017.
  */
 
-public class addUnlistedCourseDialog extends DialogFragment {
+public class AddUnlistedCourseDialog extends DialogFragment {
 
-    public addUnlistedCourseDialog() {}
+    public AddUnlistedCourseDialog() {}
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

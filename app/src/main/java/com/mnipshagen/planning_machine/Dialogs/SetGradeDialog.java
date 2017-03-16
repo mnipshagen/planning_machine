@@ -16,7 +16,7 @@ import com.mnipshagen.planning_machine.ModuleTools;
  * Created by nipsh on 11/03/2017.
  */
 
-public class setGradeDialog extends DialogFragment {
+public class SetGradeDialog extends DialogFragment {
 
     public interface GradeDialogListener {
         public void onGradeDialogPositiveClick(DialogFragment dialog, Double grade);
@@ -24,7 +24,7 @@ public class setGradeDialog extends DialogFragment {
 
     GradeDialogListener mListener;
 
-    public setGradeDialog() {}
+    public SetGradeDialog() {}
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState){
@@ -57,7 +57,7 @@ public class setGradeDialog extends DialogFragment {
                         }
                         if (allowed) {
                             ModuleTools.setCourseGrade(id, grade, context);
-                            mListener.onGradeDialogPositiveClick(setGradeDialog.this, grade);
+                            mListener.onGradeDialogPositiveClick(SetGradeDialog.this, grade);
                         }
                     } else {
                         Toast.makeText(context, "No input detected.", Toast.LENGTH_SHORT).show();
