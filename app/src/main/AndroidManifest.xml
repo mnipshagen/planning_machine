@@ -10,24 +10,26 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".Activity_Splash"
-            android:theme="@style/SplashTheme"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activity_Overview"/>
+        <activity android:name=".Activity_Overview" />
         <activity android:name=".Activity_Module" />
         <activity android:name=".Activity_Search" />
         <activity android:name=".Activity_About" />
+        <activity android:name=".Activity_Settings"/>
 
         <provider
+            android:name=".DataProviding.DataProvider"
             android:authorities="com.mnipshagen.planning_machine.DataProviding.DataProvider"
-            android:name="com.mnipshagen.planning_machine.DataProviding.DataProvider"
             android:exported="false"
             android:multiprocess="true" />
+
     </application>
 
 </manifest>
