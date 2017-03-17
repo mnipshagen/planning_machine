@@ -4,13 +4,19 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.NumberPicker;
 import android.widget.Toast;
 
 import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.R;
 
 /**
  * Created by nipsh on 11/03/2017.
@@ -19,7 +25,7 @@ import com.mnipshagen.planning_machine.ModuleTools;
 public class SetGradeDialog extends DialogFragment {
 
     public interface GradeDialogListener {
-        public void onGradeDialogPositiveClick(DialogFragment dialog, Double grade);
+        void onGradeDialogPositiveClick(DialogFragment dialog, Double grade);
     }
 
     GradeDialogListener mListener;
@@ -27,54 +33,64 @@ public class SetGradeDialog extends DialogFragment {
     public SetGradeDialog() {}
 
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState){
+    @NonNull
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
         try {
             Bundle args = getArguments();
             String course_name = args.getString("course_name");
             final Long id = args.getLong("id");
 
-            final Context context = getContext();
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle("Set Grade of " + course_name);
-            final EditText input = new EditText(context);
-            input.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
-            builder.setView(input);
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            final Dialog dialog = new Dialog(getContext());
+            dialog.setTitle("Set grade of " + course_name);
+            dialog.setContentView(R.layout.setgrade);
+            final NumberPicker first = (NumberPicker) dialog.findViewById(R.id.setGradeNP1);
+            final NumberPicker second = (NumberPicker) dialog.findViewById(R.id.setGradeNP2);
+            final String[] firstItems = {"1", "2", "3", "4"};
+            final String[] secondItems = {"0", "3", "7"};
+
+            first.setMaxValue(4);
+            first.setMinValue(1);
+            first.setDisplayedValues(firstItems);
+            first.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
                 @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (input.getText() != null){
-                        double grade = 0.0;
-                        boolean allowed = true;
-                        try {
-                            grade = Double.parseDouble(input.getText().toString().replace(',', '.'));
-                            if (!(0.5 < grade) || !(grade <= 4.)) {
-                                Toast.makeText(context, "Not a grade!", Toast.LENGTH_SHORT).show();
-                                allowed = false;
-                            }
-                        } catch (Exception e) {
-                            Toast.makeText(context, "That was not a recognisable number!", Toast.LENGTH_SHORT).show();
-                            allowed = false;
-                        }
-                        if (allowed) {
-                            ModuleTools.setCourseGrade(id, grade, context);
-                            mListener.onGradeDialogPositiveClick(SetGradeDialog.this, grade);
-                        }
+                public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+                    if (newVal == 4) {
+                        second.setMaxValue(0);
                     } else {
-                        Toast.makeText(context, "No input detected.", Toast.LENGTH_SHORT).show();
+                        second.setMaxValue(2);
                     }
                 }
             });
-            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            second.setMaxValue(2);
+            second.setMinValue(0);
+            second.setDisplayedValues(secondItems);
+
+            Button cancel = (Button) dialog.findViewById(R.id.setGradeCancel);
+            cancel.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
+                public void onClick(View v) {
+                    dialog.dismiss();
                 }
             });
-            return builder.create();
+            Button ok = (Button) dialog.findViewById(R.id.setGradeOK);
+            ok.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    double grade;
+                    int g1 = Integer.valueOf(firstItems[first.getValue()-1]);
+                    int g2 = Integer.valueOf(secondItems[second.getValue()]);
+                    grade = (float) g1 + ((float) g2 / 10.0);
 
+                    ModuleTools.setCourseGrade(id, grade, getContext());
+                    mListener.onGradeDialogPositiveClick(SetGradeDialog.this, grade);
+                    dialog.dismiss();
+                }
+            });
+
+            return dialog;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new IllegalArgumentException("Needs Bundle to work!");
+            throw new IllegalArgumentException("Missing Bundle Items!");
         }
     }
 

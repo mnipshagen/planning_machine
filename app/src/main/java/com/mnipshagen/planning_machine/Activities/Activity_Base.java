@@ -1,11 +1,12 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Activities;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -18,11 +19,17 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mnipshagen.planning_machine.DataProviding.DataProvider;
+import com.mnipshagen.planning_machine.DataProviding.ModuleObserver;
+import com.mnipshagen.planning_machine.R;
+
 /**
  * A base activity which wraps the drawer around all activities.
  */
 
 public class Activity_Base extends AppCompatActivity{
+
+    final protected static ModuleObserver mObserver = new ModuleObserver(new Handler());
     // this will store the reference to the drawer layout
     protected DrawerLayout mDrawerLayout;
     // and this to the content frame which holds the actual activities
@@ -32,6 +39,20 @@ public class Activity_Base extends AppCompatActivity{
     protected Toolbar toolbar;
     // Holding a reference to the title so that we can change it dynamically
     protected TextView title;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mObserver.setContext(this);
+        getContentResolver().registerContentObserver(DataProvider.COURSES_DB_URI, true, mObserver);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mObserver.removeContext();
+        getContentResolver().unregisterContentObserver(mObserver);
+    }
 
     /**
      * This will intercept the setContentView method called upon creation of an activity and

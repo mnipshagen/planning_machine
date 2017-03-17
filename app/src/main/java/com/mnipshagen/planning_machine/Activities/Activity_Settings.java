@@ -1,4 +1,4 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Activities;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -8,6 +8,7 @@ import android.widget.Button;
 
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+import com.mnipshagen.planning_machine.R;
 
 import java.util.Random;
 
@@ -20,7 +21,9 @@ public class Activity_Settings extends Activity_Base {
     final private String phi = "PHIL";
     final private String inf = "INF";
     final private String math = "MAT";
+    final private String log = "LOG";
     final private String open = "OPEN";
+    final private String stat = "SD";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +31,7 @@ public class Activity_Settings extends Activity_Base {
         setContentView(R.layout.activity_settings);
         setActionBarTitle("Settings");
         final int[] courses = {2544, 2542, 2491, 2492, 2497, 2568, 2567, 2574, 2573, 2566, 2695, 2696, 2630, 2631, 2632, 2629, 2635, 2636};
-        final String[] module = {bio, open, math, inf, open, ling, ai, phi, phi, bio, cnp, cnp, open, open, open, ninf, bio, bio};
+        final String[] module = {bio, open, math, inf, log, ling, ai, phi, phi, bio, cnp, cnp, stat, stat, stat, ninf, bio, bio};
         final float[] grades = {1.0f, 1.3f, 1.7f, 2.0f, 2.3f, 2.7f, 3.0f, 3.3f};
 
         Button reset = (Button) findViewById(R.id.settings_reset_button);
@@ -67,6 +70,8 @@ public class Activity_Settings extends Activity_Base {
                         SQL_Database.COURSE_COLUMN_SINGLE_FIELD
                 };
 
+                ContentValues[] values = new ContentValues[courses.length];
+
                 for (int i = 0; i < courses.length; i++) {
                     int idx = rnd.nextInt(grades.length);
                     int course_id = courses[i];
@@ -101,10 +106,10 @@ public class Activity_Settings extends Activity_Base {
                     cv.put(SQL_Database.COURSES_COLUMN_GRADE, grade);
                     cv.put(SQL_Database.COURSES_COLUMN_STATE, 2);
 
-                    getContentResolver().insert(DataProvider.COURSES_DB_URI, cv);
-
+                    values[i] = cv;
                 }
 
+                getContentResolver().bulkInsert(DataProvider.COURSES_DB_URI, values);
 
             }
         });

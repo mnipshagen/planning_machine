@@ -1,4 +1,4 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Activities;
 
 import android.content.Intent;
 import android.os.Bundle;

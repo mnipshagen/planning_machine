@@ -1,4 +1,4 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.mikepenz.aboutlibraries.entity.Library;
+import com.mnipshagen.planning_machine.R;
 
 import java.util.List;
 

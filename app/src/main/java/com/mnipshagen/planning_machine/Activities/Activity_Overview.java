@@ -1,6 +1,5 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Activities;
 
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -26,8 +25,14 @@ import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.mnipshagen.planning_machine.Adapters.Adapter_Overview;
+import com.mnipshagen.planning_machine.Adapters.Adapter_Overview_SignificantChoice;
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.R;
+import com.mnipshagen.planning_machine.Adapters.RecyclerCursorAdapter;
+import com.mnipshagen.planning_machine.Adapters.RecyclerItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,9 +43,6 @@ import java.util.List;
  */
 public class Activity_Overview extends Activity_Base implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    // the bachelor credits and the bachelor thesis credits are fix.
-    private final int BACHELOR_CREDITS = 180;
-    private final int THESIS_CREDITS = 12;
     private Cursor cursor;
     private RecyclerView rv;
     private RecyclerCursorAdapter adapter;
@@ -96,6 +98,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         addCourse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                allFABS.collapse();
                 final EditText input = new EditText(Activity_Overview.this);
                 input.setHint("Course title to search for");
 
@@ -125,6 +128,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         changeGradeCalc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                allFABS.collapse();
                 Toast.makeText(Activity_Overview.this,
                             "Choose from different ways to calculate the grade. ... Once they are implemented.",
                             Toast.LENGTH_SHORT)
@@ -135,6 +139,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         setSignificant.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                allFABS.collapse();
                 rv.removeOnItemTouchListener(mOnTouchListener);
                 final Adapter_Overview_SignificantChoice a = new Adapter_Overview_SignificantChoice(cursor, Activity_Overview.this);
                 rv.setAdapter(a);
@@ -148,7 +153,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
                 done.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        adapter.changeCursor(a.getCursor());
+                        a.markThem();
                         rv.setAdapter(adapter);
                         rv.addOnItemTouchListener(mOnTouchListener);
                         done.setVisibility(View.GONE);
@@ -172,6 +177,8 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
     }
 
     private void initGraph() {
+        final int THESIS_CREDITS = 12;
+        final int BACHELOR_CREDITS = 180;
 
         // calculate the overall achieved and in progress credits
         // by going through the modules
@@ -200,21 +207,22 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         // and the already achieved credits
         List<PieEntry> entries = new ArrayList<>();
         entries.add(new PieEntry(THESIS_CREDITS, String.valueOf(THESIS_CREDITS)));
+
         int todo_ects = BACHELOR_CREDITS - ach_ects - ip_ects - THESIS_CREDITS;
         String todo_str = String.valueOf(todo_ects);
         if(todo_ects <= 0) {
             todo_ects = 0;
             todo_str = "";
         }
-        if(ip_ects > (BACHELOR_CREDITS-THESIS_CREDITS-ach_ects)) {
-            ip_ects = BACHELOR_CREDITS-THESIS_CREDITS-ach_ects;
+        if(ip_ects > (BACHELOR_CREDITS - THESIS_CREDITS -ach_ects)) {
+            ip_ects = BACHELOR_CREDITS - THESIS_CREDITS -ach_ects;
         }
         String ip_str = String.valueOf(ip_ects);
         if(ip_ects <= 0) {
             ip_str="";
         }
-        if(ach_ects > BACHELOR_CREDITS-THESIS_CREDITS) {
-            ach_ects = BACHELOR_CREDITS-THESIS_CREDITS;
+        if(ach_ects > BACHELOR_CREDITS - THESIS_CREDITS) {
+            ach_ects = BACHELOR_CREDITS - THESIS_CREDITS;
         }
         String ach_str = String.valueOf(ach_ects);
         if(ach_ects <= 0 ) {
@@ -251,6 +259,8 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         graph.setRotationEnabled(false);
         graph.setHighlightPerTapEnabled(false);
         graph.setEntryLabelColor(R.color.half_black);
+
+        graph.invalidate();
     }
 
     private void sortIn(float g, List<Float> grades, boolean significant, List<Boolean> signs) {
@@ -260,7 +270,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         if (grades.size() > 5 || signs.size() > 5) {
             throw new RuntimeException("ToggleSignificant: More than 5 modules. Should not work");
         }
-        if (g == 0) return;
+        if (g == ModuleTools.NO_GRADE) return;
         if (grades.size() < 5) {
             int i = 0;
             while (i < grades.size() && grades.get(i) > g) {
@@ -284,8 +294,6 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
 
         if (grades.size() > 5) grades.remove(grades.size() - 1);
         if (signs.size() > 5) signs.remove(grades.size() - 1);
-        Log.v("OVERVIEW", "Sorting " + g + " brought us:" + grades.toString());
-        Log.v("OVERVIEW", "Sorting " + significant + " brought us:" + signs.toString());
     }
 
     @Override
@@ -296,7 +304,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
                 return new CursorLoader(this, DataProvider.MODULE_DB_URI,
                                     projection, null, null,
                                     SQL_Database.MODULE_COLUMN_SIGNIFICANT + " DESC, " +
-                                    SQL_Database.MODULE_COLUMN_GRADE + " ASC");
+                                    SQL_Database.MODULE_COLUMN_ID + " ASC");
             case 1:
             default:
                 throw new IllegalArgumentException("unknown cursor id");
@@ -308,7 +316,6 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         switch (loader.getId()){
             case 0:
                 cursor = data;
-                Log.v("OVERVIEW", "On Loader Finished: " + DatabaseUtils.dumpCursorToString(cursor));
                 ((RecyclerCursorAdapter)rv.getAdapter()).changeCursor(cursor);
                 initGraph();
                 break;

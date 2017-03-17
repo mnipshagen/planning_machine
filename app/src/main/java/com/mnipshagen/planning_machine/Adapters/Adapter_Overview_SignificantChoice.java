@@ -1,13 +1,13 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Adapters;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -16,8 +16,11 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.R;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -27,6 +30,8 @@ import java.util.List;
 public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Adapter_Overview_SignificantChoice.ViewHolder> {
 
     private Context mContext;
+    private SparseBooleanArray selected;
+    private LinkedHashMap<Integer, String> codes;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public com.github.mikephil.charting.charts.PieChart graph;
@@ -42,9 +47,19 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
         }
     }
 
+    public void markThem() {
+        for (int i =0; i < getItemCount(); i++) {
+            if (selected.get(i)) {
+                ModuleTools.toggleSignificant(codes.get(i), mContext);
+            }
+        }
+    }
+
     public Adapter_Overview_SignificantChoice(Cursor cursor, Context context) {
-       super(cursor);
-       mContext = context;
+        super(cursor);
+        mContext = context;
+        selected = new SparseBooleanArray();
+        codes = new LinkedHashMap<>();
     }
 
     @Override
@@ -66,14 +81,23 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
 
         significant.setChecked(mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1);
         final String module_code = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
-        final boolean openStudies = module_code.equals("OPEN");
+        final boolean insignificant = module_code.equals("OPEN") || module_code.equals("LOG") || module_code.equals("SD");
         significant.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!openStudies) {
-                    if (!ModuleTools.toggleSignificant(module_code, mContext)) {
-                        Toast.makeText(mContext, "Could not change state. Do you already have 5 significant modules?", Toast.LENGTH_LONG).show();
-                        significant.toggle();
+                if (!insignificant) {
+                    Log.v("OverviewAdapter", "The touched adapter pos is: " + viewHolder.getAdapterPosition());
+                    if(selected.get(viewHolder.getAdapterPosition(), false) ) {
+                        selected.delete(viewHolder.getAdapterPosition());
+                        codes.remove(viewHolder.getAdapterPosition());
+                    } else {
+                        if (selected.size() == 5) {
+                            Toast.makeText(mContext, "You can only choose 5 modules!", Toast.LENGTH_LONG).show();
+                            significant.toggle();
+                            return;
+                        }
+                        selected.put(viewHolder.getAdapterPosition(), true);
+                        codes.put(viewHolder.getAdapterPosition(), module_code);
                     }
                 } else {
                     Toast.makeText(mContext, "Open Studies cannot be marked significant.", Toast.LENGTH_SHORT).show();
@@ -141,7 +165,7 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
         graph.setRotationEnabled(false);
         graph.setHighlightPerTapEnabled(false);
         String grade;
-        if (mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)) == 0.0f) {
+        if (mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)) == ModuleTools.NO_GRADE) {
             grade = "--";
         } else {
             grade = String.format("%.1f",mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)));

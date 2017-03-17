@@ -1,4 +1,4 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Activities;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -19,15 +19,21 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 
+import com.mnipshagen.planning_machine.Adapters.Adapter_Search;
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+import com.mnipshagen.planning_machine.DividerItemDecoration;
+import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.R;
 
 /**
  * Created by nipsh on 19/02/2017.
@@ -61,7 +67,7 @@ public class Activity_Search extends Activity_Base implements LoaderManager.Load
         }
 
         // when enter is pressed in the course search field, start the search
-        findViewById(R.id.searchCourseTitle).setOnKeyListener(new View.OnKeyListener() {
+        View.OnKeyListener enterToSearch = new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 switch (keyCode) {
@@ -69,11 +75,30 @@ public class Activity_Search extends Activity_Base implements LoaderManager.Load
                         startSearch();
                         break;
                     default:
-                        return false;
+                        startSearch();
                 }
                 return true;
             }
-        });
+        };
+        findViewById(R.id.searchCourseTitle).setOnKeyListener(enterToSearch);
+        findViewById(R.id.searchYearTo).setOnKeyListener(enterToSearch);
+        findViewById(R.id.searchTaughtBy).setOnKeyListener(enterToSearch);
+        findViewById(R.id.searchYearFrom).setOnKeyListener(enterToSearch);
+
+        TextView.OnEditorActionListener actionSearch = new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    startSearch();
+                    return true;
+                }
+                return false;
+            }
+        };
+        ((EditText) findViewById(R.id.searchCourseTitle)).setOnEditorActionListener(actionSearch);
+        ((EditText) findViewById(R.id.searchYearTo)).setOnEditorActionListener(actionSearch);
+        ((EditText)findViewById(R.id.searchTaughtBy)).setOnEditorActionListener(actionSearch);
+        ((EditText) findViewById(R.id.searchYearFrom)).setOnEditorActionListener(actionSearch);
 
         final ImageButton expand = (ImageButton) findViewById(R.id.search_expand);
         expand.setOnClickListener(new View.OnClickListener() {
@@ -167,6 +192,7 @@ public class Activity_Search extends Activity_Base implements LoaderManager.Load
         rv.setItemAnimator(new DefaultItemAnimator());
         // for now the recycler view holds no data and we have no cursor for it
         Adapter_Search adapter = new Adapter_Search(null, this);
+        adapter.setHasStableIds(true);
         rv.setAdapter(adapter);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
@@ -179,18 +205,23 @@ public class Activity_Search extends Activity_Base implements LoaderManager.Load
             }
         });
 
-        if(start) {startSearch();}
+        if(start) {
+            findViewById(R.id.search_app_bar).setFocusableInTouchMode(true);
+            startSearch();
+        }
     }
     /**
      * search the database with all the filters applied
      */
     private void startSearch() {
-        //findViewById(R.id.searchCourseTitle).clearFocus();
+        ((AppBarLayout)findViewById(R.id.search_app_bar)).setExpanded(false);
         // hide the keyboard when search is started
         if (this.getCurrentFocus() != null) {
             InputMethodManager imm =
                     (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
+            imm.toggleSoftInput(0, 0);
+            this.getCurrentFocus().clearFocus();
+            rv.requestFocus();
         }
 
         Switch switchComp = (Switch) findViewById(R.id.searchSwitchCompulsory);

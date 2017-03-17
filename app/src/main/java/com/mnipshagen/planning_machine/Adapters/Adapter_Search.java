@@ -1,9 +1,8 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Adapters;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.database.Cursor;
-import android.databinding.ObservableArrayList;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,8 +19,11 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.mnipshagen.planning_machine.Activities.Activity_Base;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 import com.mnipshagen.planning_machine.Dialogs.AddCourseDialog;
+import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +32,7 @@ import java.util.List;
  * Created by nipsh on 29/01/2017.
  */
 
-public class Adapter_Search extends RecyclerCursorAdapter<Adapter_Search.ViewHolder>{
+public class Adapter_Search extends RecyclerCursorAdapter<Adapter_Search.ViewHolder> {
 
     private Context mContext;
     private List<Integer> expanded;
@@ -249,6 +251,7 @@ public class Adapter_Search extends RecyclerCursorAdapter<Adapter_Search.ViewHol
         mContext = context;
         expanded = new ArrayList<>();
         heights = new ArrayList<>();
+        setHasStableIds(true);
     }
 
     @Override

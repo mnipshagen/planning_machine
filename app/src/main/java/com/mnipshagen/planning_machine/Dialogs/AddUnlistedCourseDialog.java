@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -31,7 +32,7 @@ public class AddUnlistedCourseDialog extends DialogFragment {
         String code = "Open";
         if (args != null){
             code = args.getString("module_code");
-            module = ModuleTools.codeToName(code, getContext()) + ", Open Studies";
+            module = ModuleTools.codeToName(code, getContext());
         }
 
         final Dialog dialog = new Dialog(getContext());
@@ -46,7 +47,7 @@ public class AddUnlistedCourseDialog extends DialogFragment {
         butt_modules.setText(module);
 
         String[] temp = getResources().getStringArray(R.array.searchSpinnerModules);
-        final String[] modules = new String[temp.length -1];
+        final String[] modules = new String[temp.length - 3];
         System.arraycopy(temp, 1, modules, 0, modules.length);
         final boolean[] checked = new boolean[modules.length];
         for(int i = 0; i < checked.length; i++) checked[i] = false;
@@ -65,25 +66,21 @@ public class AddUnlistedCourseDialog extends DialogFragment {
         butt_modules.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final boolean[] checktmp = new boolean[checked.length];
-                System.arraycopy(checked,0,checktmp,0,checked.length);
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                 builder.setTitle("Choose applicable Modules")
                         .setMultiChoiceItems(modules, checked, new DialogInterface.OnMultiChoiceClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                                checktmp[which] = isChecked;
+                                checked[which] = isChecked;
                             }
                         })
                         .setPositiveButton("Apply", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                System.arraycopy(checktmp,0,checked,0,checked.length);
                                 StringBuilder sb = new StringBuilder();
                                 for (int i = 0; i < modules.length; i++){
                                     if (checked[i]) sb.append(modules[i]).append(", ");
                                 }
-                                sb.append("Open Studies");
                                 butt_modules.setText(sb.toString());
                             }
                         })
@@ -100,6 +97,7 @@ public class AddUnlistedCourseDialog extends DialogFragment {
         butt_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.v("AddUnlistedCourse", "Do we even reach this state?");
                 ContentValues cv = new ContentValues();
                 cv.put(SQL_Database.COURSES_COLUMN_COURSE, name.getText().toString());
                 cv.put(SQL_Database.COURSES_COLUMN_ECTS, ects.getText().toString());
@@ -108,7 +106,7 @@ public class AddUnlistedCourseDialog extends DialogFragment {
                 cv.put(SQL_Database.COURSES_COLUMN_FIELDS_STR, butt_modules.getText().toString());
                 cv.put(SQL_Database.COURSES_COLUMN_MODULE, finalCode);
 
-                getContext().getContentResolver().insert(DataProvider.COURSES_DB_URI,cv);
+                getContext().getContentResolver().insert(DataProvider.COURSES_DB_URI, cv);
 
                 dialog.dismiss();
             }

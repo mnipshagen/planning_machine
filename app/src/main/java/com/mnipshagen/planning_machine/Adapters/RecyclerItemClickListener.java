@@ -1,4 +1,4 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -15,9 +15,9 @@ public class RecyclerItemClickListener implements RecyclerView.OnItemTouchListen
     private OnItemClickListener mListener;
 
     public interface OnItemClickListener {
-        public void onItemClick(View view, int position);
+        void onItemClick(View view, int position);
 
-        public void onLongItemClick(View view, int position);
+        void onLongItemClick(View view, int position);
     }
 
     // a gesture detector to use the touch input

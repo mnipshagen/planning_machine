@@ -1,4 +1,4 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Adapters;
 
 import android.content.Context;
 import android.database.Cursor;

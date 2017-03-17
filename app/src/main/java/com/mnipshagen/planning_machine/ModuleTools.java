@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
@@ -21,6 +20,8 @@ import java.util.List;
 
 public class ModuleTools {
 
+    public static final int NO_GRADE = 99;
+
     private static final Uri courses_table = DataProvider.COURSES_DB_URI;
     private static final Uri module_table = DataProvider.MODULE_DB_URI;
     private static final String col_state = SQL_Database.COURSES_COLUMN_STATE;
@@ -29,15 +30,15 @@ public class ModuleTools {
     private static final String col_mod = SQL_Database.COURSES_COLUMN_MODULE;
 
     public static void setCoursePassed(long id, Context context){
-        sqliteStateChange(2, 0.0, id, context);
+        stateChange(2, 0.0, id, context);
     }
     public static void setCourseMarked(long id, Context context){
-        sqliteStateChange(0, 0.0, id, context);
+        stateChange(0, 0.0, id, context);
     }
     public static void setCourseInProgress(long id, Context context){
-        sqliteStateChange(1, 0.0, id, context);
+        stateChange(1, 0.0, id, context);
     }
-    private static void sqliteStateChange(int state, double grade, long id, Context context) {
+    private static void stateChange(int state, double grade, long id, Context context) {
         ContentValues cv = new ContentValues();
         cv.put(col_grade, grade);
         cv.put(col_state, state);
@@ -48,11 +49,11 @@ public class ModuleTools {
         String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
         c.close();
         mCR.update(courses_table, cv, col_id + "=" + id, null);
-        refreshModule(m_code, context);
+//        refreshModule(m_code, context);
     }
 
     public static void setCourseGrade(long id, double grade, Context context){
-        sqliteStateChange(2, grade, id, context);
+        stateChange(2, grade, id, context);
     }
 
     public static void removeCourse(long id, Context context) {
@@ -62,7 +63,7 @@ public class ModuleTools {
         String m_code = c.getString(c.getColumnIndexOrThrow(col_mod));
         c.close();
         mCR.delete(courses_table, col_id + "=" + id , null);
-        refreshModule(m_code, context);
+//        refreshModule(m_code, context);
     }
 
     public static void moveCourse(String code, long id, Context context) {
@@ -74,8 +75,8 @@ public class ModuleTools {
         ContentValues cv = new ContentValues();
         cv.put(col_mod, code);
         mCR.update(courses_table, cv, col_id + "=" + id, null);
-        refreshModule(m_code, context);
-        refreshModule(code, context);
+//        refreshModule(m_code, context);
+//        refreshModule(code, context);
     }
 
     public static String courseTypeConv(String type) {
@@ -98,19 +99,36 @@ public class ModuleTools {
             case "Colloquium":
                 converted = "C"; break;
             default:
-                converted = "Unknown (" + type +")"; break;
+                converted = "Unknown (" + type +") "; break;
         }
         return converted;
     }
 
     public static void refreshAllModules(Context context) {
-        String [] codes = {"KI", "KNP", "CL", "INF", "MAT", "NI", "NW", "PHIL", "OPEN"};
+        String [] codes = {"KI", "KNP", "CL", "INF", "MAT", "NI", "NW", "PHIL", "LOG", "SD", "OPEN"};
         for (String s: codes) {
             refreshModule(s, context);
         }
     }
 
-    public static float[] refreshModule(String module_code, Context context){
+    public static double[] refreshModule(String module_code, Context context){
+        double[] f = getOverallCredits(module_code, context);
+        int achv_credits = (int) f[0];
+        int ip_credits = (int) f[1];
+        double grade = f[2];
+
+        ContentValues values = new ContentValues();
+        values.put(SQL_Database.MODULE_COLUMN_ECTS, achv_credits);
+        values.put(SQL_Database.MODULE_COLUMN_IPECTS, ip_credits);
+        values.put(SQL_Database.MODULE_COLUMN_GRADE, grade);
+        context.getContentResolver().update(module_table, values, SQL_Database.MODULE_COLUMN_CODE + " = '" + module_code + "'", null);
+
+        return new double[] {achv_credits, ip_credits, grade};
+    }
+
+
+
+    public static double[] getOverallCredits(String module_code, Context context) {
         ContentResolver mCR = context.getContentResolver();
 
         String[] courseData = {
@@ -124,9 +142,8 @@ public class ModuleTools {
 
         int achv_credits = 0;
         int ip_credits = 0;
-        float grade = 0.f;
-        float count = 0.f;
-
+        double grade = 0.f;
+        int count = 0;
 
         c.moveToPosition(-1);
         while(c.moveToNext()) {
@@ -137,26 +154,20 @@ public class ModuleTools {
                 ip_credits += ects;
             } else if (state == 2) {
                 achv_credits += ects;
-                if (g != 0.0) {
+                if (g != NO_GRADE) {
                     grade = grade + (g*ects);
                     count += ects;
                 }
 
             }
         }
-        if(count != 0f) {
-            grade /= count;
+        if(count != 0) {
+            grade /= (float)count;
         }
-
-        ContentValues values = new ContentValues();
-        values.put(SQL_Database.MODULE_COLUMN_ECTS, achv_credits);
-        values.put(SQL_Database.MODULE_COLUMN_IPECTS, ip_credits);
-        values.put(SQL_Database.MODULE_COLUMN_GRADE, grade);
-        mCR.update(module_table, values, SQL_Database.MODULE_COLUMN_CODE + " = '" + module_code + "'", null);
 
         c.close();
 
-        return new float[] {achv_credits, ip_credits, grade};
+        return new double[] {achv_credits, ip_credits, grade};
     }
 
     public static int[] getCompAchvEcts(String module_code, Context context) {
@@ -213,6 +224,10 @@ public class ModuleTools {
             code = "INF";
         }else if (m.contains("athem")) {
             code = "MAT";
+        }else if(m.contains("ogi")){
+            code = "LOG";
+        } else if(m.contains("atisti")){
+            code = "SD";
         }else {
             code = "OPEN";
         }
@@ -238,6 +253,8 @@ public class ModuleTools {
             case "PHIL": return res.getString(R.string.PHIL_title);
             case "INF": return res.getString(R.string.INF_title);
             case "MAT": return res.getString(R.string.MAT_title);
+            case "LOG": return "Logic";
+            case "SD" : return "Statistics and Dataanalysis";
             case "OPEN": return "Open Studies";
             default: return "Unknown ModuleCode";
         }
@@ -261,6 +278,10 @@ public class ModuleTools {
                 return 7;
             case "PHIL":
                 return 8;
+            case "LOG":
+                return 9;
+            case "SD":
+                return 10;
             default:
                 return 0;
         }

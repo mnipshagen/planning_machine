@@ -1,4 +1,4 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Activities;
 
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,6 +13,8 @@ import android.widget.TextView;
 
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.entity.Library;
+import com.mnipshagen.planning_machine.Adapters.Adapter_About;
+import com.mnipshagen.planning_machine.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +30,7 @@ public class Activity_About extends Activity_Base {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
-        setActionBarTitle("About aka debug for now");
+        setActionBarTitle("About");
 
         ((TextView)findViewById(R.id.about_description)).setMovementMethod(LinkMovementMethod.getInstance());
         ((TextView)findViewById(R.id.about_github_link)).setMovementMethod(LinkMovementMethod.getInstance());

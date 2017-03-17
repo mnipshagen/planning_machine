@@ -1,4 +1,4 @@
-package com.mnipshagen.planning_machine;
+package com.mnipshagen.planning_machine.Activities;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -24,13 +24,20 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
+import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.mnipshagen.planning_machine.Adapters.Adapter_Module;
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 import com.mnipshagen.planning_machine.Dialogs.AddUnlistedCourseDialog;
 import com.mnipshagen.planning_machine.Dialogs.SetGradeDialog;
+import com.mnipshagen.planning_machine.DividerItemDecoration;
+import com.mnipshagen.planning_machine.Fragment_Dialogs;
+import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.R;
+import com.mnipshagen.planning_machine.Adapters.RecyclerItemClickListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,10 +85,13 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         // set the name as the title of the activity
         setActionBarTitle(name);
 
+        final FloatingActionsMenu allFABS = (FloatingActionsMenu) findViewById(R.id.moduleFaB);
+
         FloatingActionButton fab_addCourse = (FloatingActionButton) findViewById(R.id.moduleAddCourse);
         fab_addCourse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                allFABS.collapse();
                 final EditText input = new EditText(Activity_Module.this);
                 input.setHint("Course title to search for");
 
@@ -112,6 +122,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         fab_remCourse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                allFABS.collapse();
                 AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
                 final ArrayList<Long> selected = new ArrayList<>();
                 builder.setTitle("Remove Courses")
@@ -160,12 +171,11 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                         .show();
             }
         });
-        //TODO
-        FloatingActionButton fab_addOral = (FloatingActionButton) findViewById(R.id.moduleAddOral);
         FloatingActionButton fab_addUnlisted = (FloatingActionButton) findViewById(R.id.moduleAddUnlisted);
         fab_addUnlisted.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                allFABS.collapse();
                 AddUnlistedCourseDialog dialog = new AddUnlistedCourseDialog();
                 Bundle args = new Bundle();
                 args.putString("module_code", module_code);
@@ -174,32 +184,14 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
             }
         });
 
-        final boolean openStudies = module_code.equals("OPEN");
+        final boolean insignificant = module_code.equals("OPEN") || module_code.equals("LOG") || module_code.equals("SD");
 
-        final FloatingActionButton fab_setSignificane = (FloatingActionButton) findViewById(R.id.moduleSetSignificance);
         final ToggleButton markSignificant = (ToggleButton) findViewById(R.id.toggleSignificance);
         markSignificant.setChecked(significant);
-        fab_setSignificane.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!openStudies) {
-                    if (ModuleTools.toggleSignificant(module_code, Activity_Module.this)) {
-                        Toast.makeText(Activity_Module.this, "State of significane was changed", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(Activity_Module.this, "Could not change state. Do you already have 5 significant modules?", Toast.LENGTH_LONG).show();
-                        markSignificant.toggle();
-                    }
-                } else {
-                    Toast.makeText(Activity_Module.this, "Open Studies cannot be marked significant.", Toast.LENGTH_SHORT).show();
-                    markSignificant.toggle();
-                }
-            }
-        });
-
         markSignificant.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!openStudies) {
+                if (!insignificant) {
                     if (ModuleTools.toggleSignificant(module_code, Activity_Module.this)) {
                         Toast.makeText(Activity_Module.this, "State of significane was changed", Toast.LENGTH_SHORT).show();
                     } else {
@@ -359,6 +351,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                                         ModuleTools.setCourseMarked(id, Activity_Module.this);
                                                         break;
                                                 }
+                                                grade.setText(String.format("%.2f", 0.));
                                             }
                                         });
                                 builder.show();
@@ -458,10 +451,10 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
 
 
     private void initGraph() {
-        float[] res = ModuleTools.refreshModule(module_code, this);
+        double[] res = ModuleTools.getOverallCredits(module_code, this);
         int overall_achv = (int) res[0];
         int overall_ip = (int) res[1];
-        float grade = res[2];
+        double grade = res[2];
 
         int[] res2 = ModuleTools.getCompAchvEcts(module_code, this);
         int comp_achv = res2[0];
@@ -469,6 +462,14 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
 
         int opt_achv = overall_achv - comp_achv;
         int opt_ip = overall_ip - comp_ip;
+
+        Log.v("Module", "Starting off" +
+                "\nOverall Achvieved: " + overall_achv +
+                "\nOverall in progress: " + overall_ip +
+                "\nCompulsory achieved: " + comp_achv +
+                "\nCompulsory in progress: " + comp_ip +
+                "\nOptional achieved: " + opt_achv +
+                "\nOptional in progress: " + opt_ip);
 
         boolean compComplete = false;
         boolean compInProg = false;
@@ -481,24 +482,67 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
             comp_ip = 0;
             opt_achv += comp_credits - comp_achv;
             comp_achv = comp_credits;
-        } else if (comp_achv  + comp_ip > comp_credits) {
+            Log.v("Module", "compulsory achieved" +
+                    "\nOverall Achvieved: " + overall_achv +
+                    "\nOverall in progress: " + overall_ip +
+                    "\nCompulsory achieved: " + comp_achv +
+                    "\nCompulsory in progress: " + comp_ip +
+                    "\nOptional achieved: " + opt_achv +
+                    "\nOptional in progress: " + opt_ip);
+        } else if (comp_achv  + comp_ip >= comp_credits) {
             compInProg = true;
             optInProg = true;
             opt_ip += comp_ip - (comp_credits - comp_achv);
             comp_ip = comp_credits - comp_achv;
+            Log.v("Module", "Compulsory nearly achieved" +
+                    "\nOverall Achvieved: " + overall_achv +
+                    "\nOverall in progress: " + overall_ip +
+                    "\nCompulsory achieved: " + comp_achv +
+                    "\nCompulsory in progress: " + comp_ip +
+                    "\nOptional achieved: " + opt_achv +
+                    "\nOptional in progress: " + opt_ip);
         } else if (comp_achv > 0 || comp_ip > 0) {
             compInProg = true;
+            Log.v("Module", "compulsory in progress" +
+                    "\nOverall Achvieved: " + overall_achv +
+                    "\nOverall in progress: " + overall_ip +
+                    "\nCompulsory achieved: " + comp_achv +
+                    "\nCompulsory in progress: " + comp_ip +
+                    "\nOptional achieved: " + opt_achv +
+                    "\nOptional in progress: " + opt_ip);
         }
         // TODO do not ignore overflowing credits
+        int overflow;
         int optcomp_only = optcomp_credits - comp_credits;
         if (opt_achv >= optcomp_only) {
             optComplete = true;
             opt_achv = optcomp_only;
-        } else if (opt_achv + opt_ip > optcomp_only) {
+            Log.v("Module", "Oversaturated this thing" +
+                    "\nOverall Achvieved: " + overall_achv +
+                    "\nOverall in progress: " + overall_ip +
+                    "\nCompulsory achieved: " + comp_achv +
+                    "\nCompulsory in progress: " + comp_ip +
+                    "\nOptional achieved: " + opt_achv +
+                    "\nOptional in progress: " + opt_ip);
+        } else if (opt_achv + opt_ip >= optcomp_only) {
             optInProg = true;
             opt_ip = optcomp_only - opt_achv;
+            Log.v("Module", "module is nearly there" +
+                    "\nOverall Achvieved: " + overall_achv +
+                    "\nOverall in progress: " + overall_ip +
+                    "\nCompulsory achieved: " + comp_achv +
+                    "\nCompulsory in progress: " + comp_ip +
+                    "\nOptional achieved: " + opt_achv +
+                    "\nOptional in progress: " + opt_ip);
         } else if (opt_achv >0 || opt_ip >0) {
             optInProg = true;
+            Log.v("Module", "well. we are getting there" +
+                    "\nOverall Achvieved: " + overall_achv +
+                    "\nOverall in progress: " + overall_ip +
+                    "\nCompulsory achieved: " + comp_achv +
+                    "\nCompulsory in progress: " + comp_ip +
+                    "\nOptional achieved: " + opt_achv +
+                    "\nOptional in progress: " + opt_ip);
         }
 
          /* Setting up the PieChart */
@@ -518,10 +562,10 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                     getResources().getColor(R.color.markInProgress),
                     getResources().getColor(R.color.markCompleted)
             };
-            int todo =  optcomp_credits - overall_achv - overall_ip;
+            int todo =  optcomp_only - opt_achv - opt_ip;
             entries.add(new PieEntry(todo, String.valueOf(todo)));
-            entries.add(new PieEntry(overall_ip, String.valueOf(overall_ip)));
-            entries.add(new PieEntry(overall_achv, String.valueOf(overall_achv)));
+            entries.add(new PieEntry(opt_ip, String.valueOf(overall_ip)));
+            entries.add(new PieEntry(comp_achv + opt_achv, String.valueOf(comp_achv+opt_achv)));
         } else if(compComplete) {
             Log.v(LOGTAG, "Graph says: This course is satisfied");
             col = new int[] {
@@ -540,7 +584,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                     getResources().getColor(R.color.markInProgress),
                     getResources().getColor(R.color.markCompleted)
             };
-            entries.add(new PieEntry(opt_achv, String.valueOf(opt_achv)));
+            entries.add(new PieEntry(optcomp_only, String.valueOf(optcomp_only)));
             int todo = comp_credits - comp_achv - comp_ip;
             entries.add(new PieEntry(todo, String.valueOf(todo)));
             entries.add(new PieEntry(comp_ip, String.valueOf(comp_ip)));

@@ -123,9 +123,6 @@ public class DataProvider extends ContentProvider {
             case COURSES_SAVED:
                 id = db.insert(SQL_Database.COURSES_TABLE_NAME, null, values);
                 res_uri = Uri.parse(COURSES_BASE_PATH + "/" + id);
-                String module_code = values.getAsString(SQL_Database.COURSES_COLUMN_MODULE);
-                Log.v("DataProvider", "Updated Module: " + module_code);
-                ModuleTools.refreshModule(module_code,getContext());
                 break;
             default:
                 throw new IllegalArgumentException("Unknown URI: " + uri);

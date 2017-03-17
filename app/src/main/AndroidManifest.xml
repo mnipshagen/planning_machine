@@ -9,7 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".Activity_Splash"
+            android:name=".Activities.Activity_Splash"
             android:screenOrientation="portrait"
             android:theme="@style/SplashTheme">
             <intent-filter>
@@ -18,11 +18,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activity_Overview" />
-        <activity android:name=".Activity_Module" />
-        <activity android:name=".Activity_Search" />
-        <activity android:name=".Activity_About" />
-        <activity android:name=".Activity_Settings"/>
+        <activity android:name=".Activities.Activity_Overview" />
+        <activity android:name=".Activities.Activity_Module" />
+        <activity android:name=".Activities.Activity_Search" />
+        <activity android:name=".Activities.Activity_About" />
+        <activity android:name=".Activities.Activity_Settings"/>
 
         <provider
             android:name=".DataProviding.DataProvider"
