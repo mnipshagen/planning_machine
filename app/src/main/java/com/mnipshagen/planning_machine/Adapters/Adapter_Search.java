@@ -22,7 +22,7 @@ import android.widget.TextView;
 import com.mnipshagen.planning_machine.Activities.Activity_Base;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 import com.mnipshagen.planning_machine.Dialogs.AddCourseDialog;
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
 import java.util.ArrayList;
@@ -89,7 +89,7 @@ public class Adapter_Search extends RecyclerCursorAdapter<Adapter_Search.ViewHol
             String lectureInfo;
             String courseType = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_TYPE));
             courseType = courseType==null ? "":courseType;
-            courseType = ModuleTools.courseTypeConv(courseType);
+            courseType = Utils.courseTypeConv(courseType);
             lectureInfo = courseType.concat(" in ");
             lectureInfo = lectureInfo.concat(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_FIELDS_STR)));
             fields.setText(lectureInfo);

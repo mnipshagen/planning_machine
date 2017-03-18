@@ -2,20 +2,17 @@ package com.mnipshagen.planning_machine.Dialogs;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
-import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Activities.Activity_Module;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
 /**
@@ -24,8 +21,13 @@ import com.mnipshagen.planning_machine.R;
 
 public class SetGradeDialog extends DialogFragment {
 
+    public static final String TITLE = "title";
+    public static final String ID  = "id";
+    public static final String IS_MODULE = "is_module";
+    public static final long NO_ID = -1;
+
     public interface GradeDialogListener {
-        void onGradeDialogPositiveClick(DialogFragment dialog, Double grade);
+        void onGradeDialogPositiveClick(DialogFragment dialog, Double grade, boolean is_module);
     }
 
     GradeDialogListener mListener;
@@ -37,11 +39,12 @@ public class SetGradeDialog extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         try {
             Bundle args = getArguments();
-            String course_name = args.getString("course_name");
-            final Long id = args.getLong("id");
+            final String title = args.getString(TITLE);
+            final boolean is_module = args.getBoolean(IS_MODULE);
+            final Long id = args.getLong(ID);
 
             final Dialog dialog = new Dialog(getContext());
-            dialog.setTitle("Set grade of " + course_name);
+            dialog.setTitle("Set grade of " + title);
             dialog.setContentView(R.layout.setgrade);
             final NumberPicker first = (NumberPicker) dialog.findViewById(R.id.setGradeNP1);
             final NumberPicker second = (NumberPicker) dialog.findViewById(R.id.setGradeNP2);
@@ -69,6 +72,10 @@ public class SetGradeDialog extends DialogFragment {
             cancel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if(is_module) {
+                        ((ToggleButton)((Activity_Module)getContext())
+                                .findViewById(R.id.toggleOral)).toggle();
+                    }
                     dialog.dismiss();
                 }
             });
@@ -81,8 +88,20 @@ public class SetGradeDialog extends DialogFragment {
                     int g2 = Integer.valueOf(secondItems[second.getValue()]);
                     grade = (float) g1 + ((float) g2 / 10.0);
 
-                    ModuleTools.setCourseGrade(id, grade, getContext());
-                    mListener.onGradeDialogPositiveClick(SetGradeDialog.this, grade);
+                    if(is_module) {
+                        if (!Utils.toggleOral(Utils.getModuleCode(title), grade, getContext())) {
+                            Toast.makeText(getContext(), "Could not change state. Did you already do 2 oral exams?", Toast.LENGTH_LONG).show();
+                            ((ToggleButton)((Activity_Module)getContext())
+                                    .findViewById(R.id.toggleOral)).toggle();
+                        }
+                    } else {
+                        if(id != NO_ID) {
+                            Utils.setCourseGrade(id, grade, getContext());
+                        }
+                    }
+                    if (mListener != null) {
+                        mListener.onGradeDialogPositiveClick(SetGradeDialog.this, grade, is_module);
+                    }
                     dialog.dismiss();
                 }
             });
@@ -97,11 +116,8 @@ public class SetGradeDialog extends DialogFragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try{
+        if (context instanceof GradeDialogListener){
             mListener = (GradeDialogListener) context;
-        } catch (Exception e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement NoticeDialogListener");
         }
     }
 }

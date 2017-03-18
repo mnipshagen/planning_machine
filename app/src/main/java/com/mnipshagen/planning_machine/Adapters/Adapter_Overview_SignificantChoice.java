@@ -15,8 +15,9 @@ import android.widget.ToggleButton;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
+import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
     private Context mContext;
     private SparseBooleanArray selected;
     private LinkedHashMap<Integer, String> codes;
+    private int amount;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public com.github.mikephil.charting.charts.PieChart graph;
@@ -50,7 +52,9 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
     public void markThem() {
         for (int i =0; i < getItemCount(); i++) {
             if (selected.get(i)) {
-                ModuleTools.toggleSignificant(codes.get(i), mContext);
+                Utils.setSignificant(codes.get(i), mContext);
+            } else {
+                Utils.setInsignificant(codes.get(i), mContext);
             }
         }
     }
@@ -60,6 +64,7 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
         mContext = context;
         selected = new SparseBooleanArray();
         codes = new LinkedHashMap<>();
+        amount = mContext.getSharedPreferences(Utils.SAVE_DATA, Context.MODE_PRIVATE).getInt(Utils.SAVE_KEY_SIGNIFICANTS, 0);
     }
 
     @Override
@@ -79,28 +84,39 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
         graph = viewHolder.graph;
         significant = viewHolder.significant;
 
-        significant.setChecked(mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1);
         final String module_code = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
+        if(mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) != 0) {
+            significant.setChecked(true);
+            selected.put(viewHolder.getAdapterPosition(), true);
+            codes.put(viewHolder.getAdapterPosition(), module_code);
+        } else {
+            significant.setChecked(false);
+            selected.put(viewHolder.getAdapterPosition(), false);
+            codes.put(viewHolder.getAdapterPosition(), module_code);
+        }
         final boolean insignificant = module_code.equals("OPEN") || module_code.equals("LOG") || module_code.equals("SD");
         significant.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!insignificant) {
-                    Log.v("OverviewAdapter", "The touched adapter pos is: " + viewHolder.getAdapterPosition());
                     if(selected.get(viewHolder.getAdapterPosition(), false) ) {
-                        selected.delete(viewHolder.getAdapterPosition());
-                        codes.remove(viewHolder.getAdapterPosition());
+                        selected.put(viewHolder.getAdapterPosition(), false);
+                        amount--;
+                        Log.v("OverviewAdapter", "Selected Modules: " + codes);
+                        Log.v("OverviewAdapter", "Selected Modules: " + selected);
                     } else {
-                        if (selected.size() == 5) {
-                            Toast.makeText(mContext, "You can only choose 5 modules!", Toast.LENGTH_LONG).show();
+                        if (amount >= 5) {
+                            Toast.makeText(mContext, "You can only choose 5 modules!", Toast.LENGTH_SHORT).show();
                             significant.toggle();
                             return;
                         }
                         selected.put(viewHolder.getAdapterPosition(), true);
-                        codes.put(viewHolder.getAdapterPosition(), module_code);
+                        amount++;
+                        Log.v("OverviewAdapter", "Selected Modules: " + codes);
+                        Log.v("OverviewAdapter", "Selected Modules: " + selected);
                     }
                 } else {
-                    Toast.makeText(mContext, "Open Studies cannot be marked significant.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, "This module cannot be marked significant.", Toast.LENGTH_SHORT).show();
                     significant.toggle();
                 }
             }
@@ -165,7 +181,7 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
         graph.setRotationEnabled(false);
         graph.setHighlightPerTapEnabled(false);
         String grade;
-        if (mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)) == ModuleTools.NO_GRADE) {
+        if (mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)) == Utils.NO_GRADE) {
             grade = "--";
         } else {
             grade = String.format("%.1f",mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)));

@@ -2,6 +2,7 @@
 <android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/overview_coordinator"
@@ -17,6 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
+            android:elevation="2dp"
             app:contentScrim="?attr/colorPrimary">
 
             <LinearLayout
@@ -25,11 +27,59 @@
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
 
-                <com.github.mikephil.charting.charts.PieChart
+                <android.support.constraint.ConstraintLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:id="@+id/overviewPieChart" />
+                    android:layout_weight="0.2">
+
+                    <TextView
+                        android:id="@+id/overview_thesis"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:layout_marginLeft="0dp"
+                        android:layout_marginRight="0dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="0dp"
+                        android:drawableBottom="@drawable/ic_grad_hat"
+                        android:drawablePadding="4dp"
+                        android:text="+ 12\nfrom"
+                        android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Subtitle"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_marginBottom="0dp"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintVertical_bias="0.19999999" />
+
+                    <TextView
+                        android:id="@+id/overview_orals"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:layout_marginBottom="0dp"
+                        android:layout_marginLeft="0dp"
+                        android:layout_marginRight="0dp"
+                        android:layout_marginStart="16dp"
+                        android:drawableBottom="@drawable/ic_oral_filled"
+                        android:drawablePadding="4dp"
+                        android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Subtitle"
+                        android:text="+ 3\nfrom"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        android:layout_marginTop="0dp"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintVertical_bias="0.8" />
+                </android.support.constraint.ConstraintLayout>
+
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/overviewPieChart"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.8" />
 
             </LinearLayout>
 
@@ -44,42 +94,48 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:scrollbars="vertical" />
 
-    <com.getbase.floatingactionbutton.FloatingActionsMenu
+    <com.github.clans.fab.FloatingActionMenu
         android:id="@+id/overviewFAB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
+        app:menu_icon="@drawable/ic_menu"
+        app:menu_colorNormal="@color/white"
+        app:menu_colorPressed="@color/white_pressed"
+        android:animateLayoutChanges="false"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        app:fab_addButtonColorNormal="@color/white"
-        app:fab_addButtonColorPressed="@color/white_pressed"
-        app:fab_addButtonPlusIconColor="@color/half_black"
-        app:fab_labelStyle="@style/menu_labels_style" >
+        android:layout_alignParentEnd="true" >
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton
             android:id="@+id/overviewAddCourse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/ic_add_black"
+            app:fab_label="Add course"
+            app:fabSize="mini"
             app:fab_colorNormal="@color/white"
-            app:fab_title="Add course"
             app:fab_colorPressed="@color/white_pressed"/>
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton
             android:id="@+id/overviewChangeGradeCalc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/ic_check"
+            app:fab_label="Change grade calculation"
+            app:fabSize="mini"
             app:fab_colorNormal="@color/white"
-            app:fab_title="Change Grade Calculation"
-            app:fab_colorPressed="@color/white_pressed"/>
+            app:fab_colorPressed="@color/white_pressed" />
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton
             android:id="@+id/overviewSetSignificantModules"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/ic_star_filled"
+            app:fab_label="Mark modules significant"
+            app:fabSize="mini"
             app:fab_colorNormal="@color/white"
-            app:fab_title="Set the significant Modules"
-            app:fab_colorPressed="@color/white_pressed"/>
+            app:fab_colorPressed="@color/white_pressed" />
 
-    </com.getbase.floatingactionbutton.FloatingActionsMenu>
+    </com.github.clans.fab.FloatingActionMenu>
 
 </android.support.design.widget.CoordinatorLayout>

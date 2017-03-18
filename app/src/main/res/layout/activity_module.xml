@@ -26,8 +26,7 @@
                 <android.support.constraint.ConstraintLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.2"
-                    android:orientation="vertical">
+                    android:layout_weight="0.2" >
 
                     <ToggleButton
                         android:id="@+id/toggleSignificance"
@@ -50,7 +49,7 @@
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_margin="16dp"
-                        android:layout_marginBottom="15dp"
+                        android:layout_marginBottom="0dp"
                         android:layout_marginTop="0dp"
                         android:background="@drawable/button_oral"
                         android:textOff=""
@@ -64,10 +63,10 @@
                 </android.support.constraint.ConstraintLayout>
 
                 <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/modulePieChart"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.8"
-                    android:id="@+id/modulePieChart"/>
+                    android:layout_weight="0.8" />
 
             </LinearLayout>
 
@@ -83,42 +82,47 @@
         android:scrollbars="vertical"/>
 
 
-    <com.getbase.floatingactionbutton.FloatingActionsMenu
+    <com.github.clans.fab.FloatingActionMenu
         android:id="@+id/moduleFaB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|right"
+        app:menu_icon="@drawable/ic_menu"
+        app:menu_colorNormal="@color/white"
+        app:menu_colorPressed="@color/white_pressed"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        app:fab_addButtonColorNormal="@color/white"
-        app:fab_addButtonColorPressed="@color/white_pressed"
-        app:fab_addButtonPlusIconColor="@color/half_black"
-        app:fab_labelStyle="@style/menu_labels_style" >
+        android:layout_alignParentEnd="true" >
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton
             android:id="@+id/moduleAddCourse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/ic_add_black"
+            app:fab_label="Add course"
+            app:fabSize="mini"
             app:fab_colorNormal="@color/white"
-            app:fab_title="Add course"
-            app:fab_colorPressed="@color/white_pressed"/>
+            app:fab_colorPressed="@color/white_pressed" />
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton
             android:id="@+id/moduleRemoveCourse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/ic_remove_black"
+            app:fab_label="Remove courses"
+            app:fabSize="mini"
             app:fab_colorNormal="@color/white"
-            app:fab_title="Remove Course"
-            app:fab_colorPressed="@color/white_pressed"/>
+            app:fab_colorPressed="@color/white_pressed" />
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <com.github.clans.fab.FloatingActionButton
             android:id="@+id/moduleAddUnlisted"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/ic_expand"
+            app:fab_label="Add unlisted course"
+            app:fabSize="mini"
             app:fab_colorNormal="@color/white"
-            app:fab_title="Add unlisted course"
-            app:fab_colorPressed="@color/white_pressed"/>
+            app:fab_colorPressed="@color/white_pressed" />
 
-    </com.getbase.floatingactionbutton.FloatingActionsMenu>
+    </com.github.clans.fab.FloatingActionMenu>
 
 </android.support.design.widget.CoordinatorLayout>

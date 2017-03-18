@@ -4,6 +4,8 @@
     <color name="colorPrimary">#FFE082</color>
     <color name="colorPrimaryDark">#FFB300</color>
     <color name="colorAccent">#ff5722</color>
+
+    <color name="markOrals">#47a447</color>
     <color name="markCompleted">#5CB85C</color>
     <color name="markInProgress">#5BC0DE</color>
     <color name="markMarked">#F5F5F5</color>

@@ -14,7 +14,7 @@ import android.widget.Spinner;
 
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
 /**
@@ -32,7 +32,7 @@ public class AddUnlistedCourseDialog extends DialogFragment {
         String code = "Open";
         if (args != null){
             code = args.getString("module_code");
-            module = ModuleTools.codeToName(code, getContext());
+            module = Utils.codeToName(code, getContext());
         }
 
         final Dialog dialog = new Dialog(getContext());
@@ -52,7 +52,7 @@ public class AddUnlistedCourseDialog extends DialogFragment {
         final boolean[] checked = new boolean[modules.length];
         for(int i = 0; i < checked.length; i++) checked[i] = false;
         if (code != null){
-            int modID = ModuleTools.codeToListID(code);
+            int modID = Utils.codeToListID(code);
             checked[modID -1] = true;
         }
 

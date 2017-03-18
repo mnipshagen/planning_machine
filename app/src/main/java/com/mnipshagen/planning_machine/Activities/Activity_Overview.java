@@ -2,10 +2,12 @@ package com.mnipshagen.planning_machine.Activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -13,15 +15,18 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.getbase.floatingactionbutton.FloatingActionButton;
-import com.getbase.floatingactionbutton.FloatingActionsMenu;
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
@@ -29,7 +34,7 @@ import com.mnipshagen.planning_machine.Adapters.Adapter_Overview;
 import com.mnipshagen.planning_machine.Adapters.Adapter_Overview_SignificantChoice;
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 import com.mnipshagen.planning_machine.Adapters.RecyclerCursorAdapter;
 import com.mnipshagen.planning_machine.Adapters.RecyclerItemClickListener;
@@ -52,6 +57,38 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_overview);
         setActionBarTitle(R.string.title_overview);
+
+        TextView ects_thesis, ects_orals;
+        ects_thesis = (TextView) findViewById(R.id.overview_thesis);
+        ects_thesis.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Snackbar.make(v, "You will be able to fill in your thesis results here. This time is not now. But it will come. And it will be aweomse.", Snackbar.LENGTH_SHORT);
+            }
+        });
+        ects_orals = (TextView) findViewById(R.id.overview_orals);
+        ects_orals.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Cursor c = getContentResolver().query(
+                        DataProvider.MODULE_DB_URI,
+                        new String[] {SQL_Database.MODULE_COLUMN_NAME},
+                        SQL_Database.MODULE_COLUMN_STATE + "<> 0",
+                        null, null);
+                c.moveToPosition(-1);
+                String[] names = new String[c.getCount()];
+                int i = 0;
+                while (c.moveToNext()) {
+                    names[i++] = c.getString(0);
+                }
+                if (i != 0) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Overview.this);
+                    builder.setTitle("Your oral exams")
+                            .setItems(names, null)
+                            .show();
+                }
+            }
+        });
 
         /* The lower half is now */
         rv = (RecyclerView) findViewById(R.id.overviewRecycler);
@@ -76,13 +113,15 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
                 String code = cursor.getString(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
                 int compECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_COMP));
                 int optcompECTS = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS_OPTCOMP));
-                boolean significant = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1;
+                boolean significant = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) != 0;
+                boolean oraled = cursor.getInt(cursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_STATE)) != 0;
                 Intent intent = new Intent(Activity_Overview.this, Activity_Module.class);
                 intent.putExtra("Name",name);
                 intent.putExtra("Module", code);
                 intent.putExtra("compECTS", compECTS);
                 intent.putExtra("optcompECTS", optcompECTS);
                 intent.putExtra("significant", significant);
+                intent.putExtra("oral", oraled);
                 startActivity(intent);
             }
 
@@ -93,12 +132,12 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         });
         rv.addOnItemTouchListener(mOnTouchListener);
 
-        final FloatingActionsMenu allFABS = (FloatingActionsMenu) findViewById(R.id.overviewFAB);
+        final FloatingActionMenu allFABS = (FloatingActionMenu) findViewById(R.id.overviewFAB);
         FloatingActionButton addCourse = (FloatingActionButton) findViewById(R.id.overviewAddCourse);
         addCourse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                allFABS.collapse();
+                allFABS.close(true);
                 final EditText input = new EditText(Activity_Overview.this);
                 input.setHint("Course title to search for");
 
@@ -128,7 +167,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         changeGradeCalc.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                allFABS.collapse();
+                allFABS.close(true);
                 Toast.makeText(Activity_Overview.this,
                             "Choose from different ways to calculate the grade. ... Once they are implemented.",
                             Toast.LENGTH_SHORT)
@@ -139,7 +178,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         setSignificant.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                allFABS.collapse();
+                allFABS.close(true);
                 rv.removeOnItemTouchListener(mOnTouchListener);
                 final Adapter_Overview_SignificantChoice a = new Adapter_Overview_SignificantChoice(cursor, Activity_Overview.this);
                 rv.setAdapter(a);
@@ -176,9 +215,30 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
             Log.v("OVERVIEW", "On Resume: Cursor is null or closed.");
     }
 
-    private void initGraph() {
+    private void initAppBar() {
         final int THESIS_CREDITS = 12;
         final int BACHELOR_CREDITS = 180;
+
+        TextView ects_thesis, ects_orals;
+        ects_thesis = (TextView) findViewById(R.id.overview_thesis);
+        Spanned text;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            text = Html.fromHtml("+ <b>0</b> from",Html.FROM_HTML_MODE_LEGACY);
+        } else {
+            //noinspection deprecation
+            text = Html.fromHtml("+ <b>0</b> from");
+        }
+        ects_thesis.setText(text);
+        ects_orals = (TextView) findViewById(R.id.overview_orals);
+        SharedPreferences sharedPrefs = getSharedPreferences(Utils.SAVE_DATA, MODE_PRIVATE);
+        int oralAmount = sharedPrefs.getInt(Utils.SAVE_KEY_ORALS, 0) * 3;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            text = Html.fromHtml("+ <b>" + oralAmount +"</b> from",Html.FROM_HTML_MODE_LEGACY);
+        } else {
+            //noinspection deprecation
+            text = Html.fromHtml("+ <b>" + oralAmount + "</b> from");
+        }
+        ects_orals.setText(text);
 
         // calculate the overall achieved and in progress credits
         // by going through the modules
@@ -208,7 +268,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         List<PieEntry> entries = new ArrayList<>();
         entries.add(new PieEntry(THESIS_CREDITS, String.valueOf(THESIS_CREDITS)));
 
-        int todo_ects = BACHELOR_CREDITS - ach_ects - ip_ects - THESIS_CREDITS;
+        int todo_ects = BACHELOR_CREDITS - ach_ects - ip_ects - THESIS_CREDITS - oralAmount;
         String todo_str = String.valueOf(todo_ects);
         if(todo_ects <= 0) {
             todo_ects = 0;
@@ -228,8 +288,13 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         if(ach_ects <= 0 ) {
             ach_str = "";
         }
+        String oralAmount_str = String.valueOf(oralAmount);
+        if(oralAmount <= 0) {
+            oralAmount_str = "";
+        }
         entries.add(new PieEntry(todo_ects, todo_str));
         entries.add(new PieEntry(ip_ects, ip_str));
+        entries.add(new PieEntry(oralAmount, oralAmount_str));
         entries.add(new PieEntry(ach_ects, ach_str));
         // create dataset
         PieDataSet pieSet = new PieDataSet(entries, "Credits towards Bachelor");
@@ -240,6 +305,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
                 getResources().getColor(R.color.markBachelor),
                 getResources().getColor(R.color.markMarked),
                 getResources().getColor(R.color.markInProgress),
+                getResources().getColor(R.color.markOrals),
                 getResources().getColor(R.color.markCompleted)
         };
         // apply the colours
@@ -270,7 +336,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
         if (grades.size() > 5 || signs.size() > 5) {
             throw new RuntimeException("ToggleSignificant: More than 5 modules. Should not work");
         }
-        if (g == ModuleTools.NO_GRADE) return;
+        if (g == Utils.NO_GRADE) return;
         if (grades.size() < 5) {
             int i = 0;
             while (i < grades.size() && grades.get(i) > g) {
@@ -317,7 +383,7 @@ public class Activity_Overview extends Activity_Base implements LoaderManager.Lo
             case 0:
                 cursor = data;
                 ((RecyclerCursorAdapter)rv.getAdapter()).changeCursor(cursor);
-                initGraph();
+                initAppBar();
                 break;
         }
     }

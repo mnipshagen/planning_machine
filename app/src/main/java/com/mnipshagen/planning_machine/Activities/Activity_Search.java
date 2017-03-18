@@ -32,7 +32,7 @@ import com.mnipshagen.planning_machine.Adapters.Adapter_Search;
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 import com.mnipshagen.planning_machine.DividerItemDecoration;
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
 /**
@@ -62,7 +62,7 @@ public class Activity_Search extends Activity_Base implements LoaderManager.Load
         if (args != null) {
             courseTitle.setText(args.getString("course_title"));
             String module_code = args.getString("module_code");
-            moduleList.setSelection(ModuleTools.codeToListID(module_code));
+            moduleList.setSelection(Utils.codeToListID(module_code));
             start = args.getBoolean("start");
         }
 

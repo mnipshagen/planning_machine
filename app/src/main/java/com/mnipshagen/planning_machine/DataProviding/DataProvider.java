@@ -12,8 +12,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.mnipshagen.planning_machine.ModuleTools;
-
 import java.util.Arrays;
 import java.util.HashSet;
 

@@ -23,8 +23,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.getbase.floatingactionbutton.FloatingActionButton;
-import com.getbase.floatingactionbutton.FloatingActionsMenu;
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
@@ -35,7 +35,7 @@ import com.mnipshagen.planning_machine.Dialogs.AddUnlistedCourseDialog;
 import com.mnipshagen.planning_machine.Dialogs.SetGradeDialog;
 import com.mnipshagen.planning_machine.DividerItemDecoration;
 import com.mnipshagen.planning_machine.Fragment_Dialogs;
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 import com.mnipshagen.planning_machine.Adapters.RecyclerItemClickListener;
 
@@ -80,18 +80,20 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         optcomp_credits = intent.getIntExtra("optcompECTS", 0);
         // and the significane
         boolean significant = intent.getBooleanExtra("significant", false);
+        // was oral performed on this module?
+        boolean oraled = intent.getBooleanExtra("oral", false);
         // and the name of the module
-        final String name = intent.getStringExtra("Name");
+        final String module_name = intent.getStringExtra("Name");
         // set the name as the title of the activity
-        setActionBarTitle(name);
+        setActionBarTitle(module_name);
 
-        final FloatingActionsMenu allFABS = (FloatingActionsMenu) findViewById(R.id.moduleFaB);
+        final FloatingActionMenu allFABS = (FloatingActionMenu) findViewById(R.id.moduleFaB);
 
         FloatingActionButton fab_addCourse = (FloatingActionButton) findViewById(R.id.moduleAddCourse);
         fab_addCourse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                allFABS.collapse();
+                allFABS.close(true);
                 final EditText input = new EditText(Activity_Module.this);
                 input.setHint("Course title to search for");
 
@@ -122,7 +124,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         fab_remCourse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                allFABS.collapse();
+                allFABS.close(true);
                 AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
                 final ArrayList<Long> selected = new ArrayList<>();
                 builder.setTitle("Remove Courses")
@@ -155,7 +157,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 for (long id : selected) {
-                                                    ModuleTools.removeCourse(id, Activity_Module.this);
+                                                    Utils.removeCourse(id, Activity_Module.this);
                                                 }
                                             }
                                         })
@@ -175,7 +177,7 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
         fab_addUnlisted.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                allFABS.collapse();
+                allFABS.close(true);
                 AddUnlistedCourseDialog dialog = new AddUnlistedCourseDialog();
                 Bundle args = new Bundle();
                 args.putString("module_code", module_code);
@@ -192,14 +194,37 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
             @Override
             public void onClick(View v) {
                 if (!insignificant) {
-                    if (ModuleTools.toggleSignificant(module_code, Activity_Module.this)) {
-                        Toast.makeText(Activity_Module.this, "State of significane was changed", Toast.LENGTH_SHORT).show();
-                    } else {
+                    if (!Utils.toggleSignificant(module_code, Activity_Module.this)) {
                         Toast.makeText(Activity_Module.this, "Could not change state. Do you already have 5 significant modules?", Toast.LENGTH_LONG).show();
                         markSignificant.toggle();
                     }
                 } else {
-                    Toast.makeText(Activity_Module.this, "Open Studies cannot be marked significant.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Activity_Module.this, "This module cannot be marked significant.", Toast.LENGTH_LONG).show();
+                    markSignificant.toggle();
+                }
+            }
+        });
+
+        final ToggleButton markOral = (ToggleButton) findViewById(R.id.toggleOral);
+        markOral.setChecked(oraled);
+        markOral.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!insignificant) {
+                    if(markOral.isChecked()) {
+                        SetGradeDialog setGrade = new SetGradeDialog();
+                        Bundle args = new Bundle();
+                        args.putString(SetGradeDialog.TITLE, module_name);
+                        args.putLong(SetGradeDialog.ID, SetGradeDialog.NO_ID);
+                        args.putBoolean(SetGradeDialog.IS_MODULE, true);
+                        setGrade.setArguments(args);
+                        setGrade.show(getSupportFragmentManager(), "setGrade");
+                    } else {
+                        Utils.toggleOral(module_code, Utils.NO_GRADE, Activity_Module.this);
+                        initGraph();
+                    }
+                } else {
+                    Toast.makeText(Activity_Module.this, "You cannot perform an oral examination in this module.", Toast.LENGTH_LONG).show();
                     markSignificant.toggle();
                 }
             }
@@ -239,15 +264,19 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                         course_name.setText(c_name);
 
                         final TextView grade = (TextView) dialog.findViewById(R.id.course_grade);
-                        grade.setText(String.format("%.2f", courses.getDouble(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE))));
+                        double g = courses.getDouble(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_GRADE));
+                        String gradeText =
+                                 g == Utils.NO_GRADE? "--" : String.format("%.2f", g);
+                        grade.setText(gradeText);
                         grade.setOnClickListener(new View.OnClickListener() {
 
                             @Override
                             public void onClick(View v) {
                                 SetGradeDialog setGrade = new SetGradeDialog();
                                 Bundle args = new Bundle();
-                                args.putString("course_name", c_name);
-                                args.putLong("id", id);
+                                args.putString(SetGradeDialog.TITLE, c_name);
+                                args.putLong(SetGradeDialog.ID, id);
+                                args.putBoolean(SetGradeDialog.IS_MODULE, false);
                                 setGrade.setArguments(args);
                                 setGrade.show(getSupportFragmentManager(), "setGrade");
                             }
@@ -260,11 +289,11 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                         TextView typein = (TextView) dialog.findViewById(R.id.course_typein);
                         String tmp = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_TYPE));
                         if (tmp != null) {
-                            tmp = ModuleTools.courseTypeConv(tmp);
+                            tmp = Utils.courseTypeConv(tmp);
                         } else {
                             tmp = "";
                         }
-                        String tmp2 = ModuleTools.codeToName(courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_MODULE)), Activity_Module.this);
+                        String tmp2 = Utils.codeToName(courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_MODULE)), Activity_Module.this);
                         tmp = tmp.concat(" in " + tmp2);
                         typein.setText(tmp);
 
@@ -297,9 +326,9 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                         Button but_move = (Button) dialog.findViewById(R.id.course_butt_move);
                         String movable = "Movable to:\n";
                         String[] possibleCourses = courses.getString(courses.getColumnIndexOrThrow(SQL_Database.COURSES_COLUMN_FIELDS_STR)).concat(", Open Studies").split(",");
-                        List<String> possibleCodes = new ArrayList<>(Arrays.asList(ModuleTools.getModuleCodes(possibleCourses)));
+                        List<String> possibleCodes = new ArrayList<>(Arrays.asList(Utils.getModuleCodes(possibleCourses)));
                         possibleCodes.remove(module_code);
-                        String[] modNames = ModuleTools.codesToNames(possibleCodes, Activity_Module.this);
+                        String[] modNames = Utils.codesToNames(possibleCodes, Activity_Module.this);
                         StringBuilder sbuilder = new StringBuilder();
                         for (String s : modNames) {
                             sbuilder.append(s);
@@ -323,9 +352,9 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                         but_remove.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                ModuleTools.removeCourse(id, Activity_Module.this);
+                                Utils.removeCourse(id, Activity_Module.this);
                                 dialog.dismiss();
-                                Snackbar.make(findViewById(R.id.content), name + " was removed.", Snackbar.LENGTH_LONG);
+                                Snackbar.make(findViewById(R.id.content), module_name + " was removed.", Snackbar.LENGTH_LONG);
                             }
                         });
                         Button but_changeState = (Button) dialog.findViewById(R.id.course_butt_changeState);
@@ -333,22 +362,22 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                             @Override
                             public void onClick(View v) {
                                 AlertDialog.Builder builder = new AlertDialog.Builder(Activity_Module.this);
-                                builder.setTitle("Set state of " + name)
+                                builder.setTitle("Set state of " + module_name)
                                         .setItems(R.array.statelist, new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 switch(which) {
                                                     // passed
                                                     case 0:
-                                                        ModuleTools.setCoursePassed(id, Activity_Module.this);
+                                                        Utils.setCoursePassed(id, Activity_Module.this);
                                                         break;
                                                     // in progress
                                                     case 1:
-                                                        ModuleTools.setCourseInProgress(id, Activity_Module.this);
+                                                        Utils.setCourseInProgress(id, Activity_Module.this);
                                                         break;
                                                     // marked
                                                     case 2:
-                                                        ModuleTools.setCourseMarked(id, Activity_Module.this);
+                                                        Utils.setCourseMarked(id, Activity_Module.this);
                                                         break;
                                                 }
                                                 grade.setText(String.format("%.2f", 0.));
@@ -400,7 +429,13 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                         switch (which) {
                                             // set grade
                                             case 0:
-                                               Fragment_Dialogs.changeGrade(name, id, Activity_Module.this);
+                                                SetGradeDialog setGrade = new SetGradeDialog();
+                                                Bundle args = new Bundle();
+                                                args.putString(SetGradeDialog.TITLE, name);
+                                                args.putLong(SetGradeDialog.ID, id);
+                                                args.putBoolean(SetGradeDialog.IS_MODULE, false);
+                                                setGrade.setArguments(args);
+                                                setGrade.show(getSupportFragmentManager(), "setGrade");
                                                break;
                                             // change state
                                             case 1:
@@ -412,15 +447,15 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                                                 switch(which) {
                                                                     // passed
                                                                     case 0:
-                                                                        ModuleTools.setCoursePassed(id, Activity_Module.this);
+                                                                        Utils.setCoursePassed(id, Activity_Module.this);
                                                                         break;
                                                                     // in progress
                                                                     case 1:
-                                                                        ModuleTools.setCourseInProgress(id, Activity_Module.this);
+                                                                        Utils.setCourseInProgress(id, Activity_Module.this);
                                                                         break;
                                                                     // marked
                                                                     case 2:
-                                                                        ModuleTools.setCourseMarked(id, Activity_Module.this);
+                                                                        Utils.setCourseMarked(id, Activity_Module.this);
                                                                         break;
                                                                 }
                                                             }
@@ -429,16 +464,16 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                                                 break;
                                             // move to
                                             case 2:
-                                                List<String> codes = new ArrayList<>(Arrays.asList(ModuleTools.getModuleCodes(fieldsSTR.split(","))));
+                                                List<String> codes = new ArrayList<>(Arrays.asList(Utils.getModuleCodes(fieldsSTR.split(","))));
                                                 codes.add("OPEN");
                                                 codes.remove(module_code);
-                                                String[] fields = ModuleTools.codesToNames(codes, Activity_Module.this);
+                                                String[] fields = Utils.codesToNames(codes, Activity_Module.this);
 
                                                 Fragment_Dialogs.moveCourse(name, fields, id, Activity_Module.this);
                                                 break;
                                             // remove
                                             case 3:
-                                                ModuleTools.removeCourse(id, Activity_Module.this);
+                                                Utils.removeCourse(id, Activity_Module.this);
                                                 Snackbar.make(findViewById(R.id.content), name + " was removed.", Snackbar.LENGTH_LONG);
                                                 break;
                                         }
@@ -451,12 +486,12 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
 
 
     private void initGraph() {
-        double[] res = ModuleTools.getOverallCredits(module_code, this);
+        double[] res = Utils.getOverallCredits(module_code, this);
         int overall_achv = (int) res[0];
         int overall_ip = (int) res[1];
         double grade = res[2];
 
-        int[] res2 = ModuleTools.getCompAchvEcts(module_code, this);
+        int[] res2 = Utils.getCompAchvEcts(module_code, this);
         int comp_achv = res2[0];
         int comp_ip = res2[1];
 
@@ -663,7 +698,11 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
                 (com.github.mikephil.charting.charts.PieChart) findViewById(R.id.modulePieChart);
         // attach the data to the pie chart and format the chart
         graph.setData(pieData);
-        graph.setCenterText(String.format("%.2f", grade));
+        String gradeText = String.format("%.2f", grade);
+        if (grade == Utils.NO_GRADE){
+            gradeText = "--";
+        }
+        graph.setCenterText(gradeText);
         // no description and no legend needed
         graph.getDescription().setEnabled(false);
         graph.getLegend().setEnabled(false);
@@ -722,8 +761,14 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
     }
 
     @Override
-    public void onGradeDialogPositiveClick(DialogFragment d, Double g) {
-        TextView grade = (TextView) dialog.findViewById(R.id.course_grade);
-        grade.setText(String.format("%.2f",g));
+    public void onGradeDialogPositiveClick(DialogFragment d, Double g, boolean is_module) {
+        if(is_module) {
+            ((com.github.mikephil.charting.charts.PieChart)
+                    findViewById(R.id.modulePieChart)).setCenterText(String.format("%.2f", g));
+            findViewById(R.id.modulePieChart).invalidate();
+        } else {
+            TextView grade = (TextView) dialog.findViewById(R.id.course_grade);
+            grade.setText(String.format("%.2f", g));
+        }
     }
 }

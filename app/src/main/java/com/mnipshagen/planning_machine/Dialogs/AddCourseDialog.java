@@ -15,7 +15,7 @@ import android.widget.TextView;
 import com.mnipshagen.planning_machine.Activities.Activity_Module;
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
 /**
@@ -65,7 +65,7 @@ public class AddCourseDialog extends DialogFragment {
                     dismiss();
                     if(addCourse()) {
 
-                        String module = ModuleTools.getModuleCode(modules[selected]);
+                        String module = Utils.getModuleCode(modules[selected]);
                         String[] columns = {
                                 SQL_Database.MODULE_COLUMN_NAME,
                                 SQL_Database.MODULE_COLUMN_ECTS_COMP,
@@ -103,7 +103,7 @@ public class AddCourseDialog extends DialogFragment {
                                 .setPositiveButton("Go", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        String module = ModuleTools.getModuleCode(modules[selected]);
+                                        String module = Utils.getModuleCode(modules[selected]);
                                         String[] columns = {
                                                 SQL_Database.MODULE_COLUMN_NAME,
                                                 SQL_Database.MODULE_COLUMN_ECTS_COMP,
@@ -161,7 +161,7 @@ public class AddCourseDialog extends DialogFragment {
     }
 
     private boolean addCourse() {
-        String module = ModuleTools.getModuleCode(modules[selected]);
+        String module = Utils.getModuleCode(modules[selected]);
 
         String[] columns = {
                 SQL_Database.COURSES_COLUMN_COURSE_ID,
@@ -190,8 +190,7 @@ public class AddCourseDialog extends DialogFragment {
         Cursor coursesInModule = getContext().getContentResolver().query(
                 DataProvider.COURSES_DB_URI,
                 new String[] {SQL_Database.COURSES_COLUMN_COURSE},
-                SQL_Database.COURSES_COLUMN_MODULE + "= '" + module + "'",
-                null, null
+                null, null, null
         );
         c.moveToFirst();
         String name = c.getString(c.getColumnIndexOrThrow(SQL_Database.COURSE_COLUMN_COURSE));

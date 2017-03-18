@@ -18,11 +18,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.Activity_Overview" />
-        <activity android:name=".Activities.Activity_Module" />
-        <activity android:name=".Activities.Activity_Search" />
-        <activity android:name=".Activities.Activity_About" />
-        <activity android:name=".Activities.Activity_Settings"/>
+        <activity android:name=".Activities.Activity_Overview" android:screenOrientation="portrait" />
+        <activity android:name=".Activities.Activity_Module" android:screenOrientation="portrait" />
+        <activity android:name=".Activities.Activity_Search" android:screenOrientation="portrait" />
+        <activity android:name=".Activities.Activity_About" android:screenOrientation="portrait" />
+        <activity android:name=".Activities.Activity_Settings" android:screenOrientation="portrait" />
 
         <provider
             android:name=".DataProviding.DataProvider"

@@ -13,7 +13,7 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
 import java.util.ArrayList;
@@ -69,8 +69,11 @@ public class Adapter_Overview extends RecyclerCursorAdapter<Adapter_Overview.Vie
         String credits = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS)) + " ECTS";
         subname.setText(credits);
 
-        if (mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) == 1) {
+        if (mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) != 0) {
             significant.setImageResource(R.drawable.ic_star_filled);
+        }
+        if (mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_STATE)) != 0) {
+            oral.setImageResource(R.drawable.ic_oral_filled);
         }
 
         List<PieEntry> entries = new ArrayList<>();
@@ -128,7 +131,7 @@ public class Adapter_Overview extends RecyclerCursorAdapter<Adapter_Overview.Vie
         graph.setRotationEnabled(false);
         graph.setHighlightPerTapEnabled(false);
         String grade;
-        if (mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)) == ModuleTools.NO_GRADE) {
+        if (mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)) == Utils.NO_GRADE) {
             grade = "--";
         } else {
             grade = String.format("%.1f",mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)));

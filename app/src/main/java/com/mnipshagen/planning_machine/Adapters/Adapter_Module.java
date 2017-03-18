@@ -15,7 +15,7 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
 import java.util.ArrayList;
@@ -114,7 +114,7 @@ public class Adapter_Module extends RecyclerCursorAdapter<Adapter_Module.ViewHol
         graph.setRotationEnabled(false);
         graph.setHighlightPerTapEnabled(false);
         String grade;
-        if (mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)) == ModuleTools.NO_GRADE) {
+        if (mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)) == Utils.NO_GRADE) {
             grade = "--";
         } else {
             grade = String.format("%.1f",mCursor.getFloat(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_GRADE)));

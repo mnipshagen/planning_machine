@@ -8,6 +8,7 @@ import android.widget.Button;
 
 import com.mnipshagen.planning_machine.DataProviding.DataProvider;
 import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
+import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
 import java.util.Random;
@@ -30,8 +31,8 @@ public class Activity_Settings extends Activity_Base {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         setActionBarTitle("Settings");
-        final int[] courses = {2544, 2542, 2491, 2492, 2497, 2568, 2567, 2574, 2573, 2566, 2695, 2696, 2630, 2631, 2632, 2629, 2635, 2636};
-        final String[] module = {bio, open, math, inf, log, ling, ai, phi, phi, bio, cnp, cnp, stat, stat, stat, ninf, bio, bio};
+        final int[] courses =   {2544, 2542, 2491, 2492, 2497, 2568, 2567, 2574, 2573, 2566, 2695, 2696, 2630, 2631, 2632, 2629, 2635, 2636};
+        final String[] module = {bio,  open, math, inf,  log,  ling, ai,   phi,  phi,  bio,  cnp,  cnp,  stat, stat, stat, ninf, bio,  bio};
         final float[] grades = {1.0f, 1.3f, 1.7f, 2.0f, 2.3f, 2.7f, 3.0f, 3.3f};
 
         Button reset = (Button) findViewById(R.id.settings_reset_button);
@@ -73,11 +74,17 @@ public class Activity_Settings extends Activity_Base {
                 ContentValues[] values = new ContentValues[courses.length];
 
                 for (int i = 0; i < courses.length; i++) {
-                    int idx = rnd.nextInt(grades.length);
                     int course_id = courses[i];
                     String module_code = module[i];
-                    float grade = grades[idx];
-
+                    double grade;
+                    if (course_id == 2542) {
+                        grade = Utils.NO_GRADE;
+                    } else if (course_id == 2630 || course_id == 2631 || course_id == 2632) {
+                        grade = 3.3;
+                    } else {
+                        int idx = rnd.nextInt(grades.length);
+                        grade = grades[idx];
+                    }
                     ContentValues cv = new ContentValues();
 
                     Cursor db = getContentResolver().query(

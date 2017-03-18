@@ -5,7 +5,7 @@ import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Handler;
 
-import com.mnipshagen.planning_machine.ModuleTools;
+import com.mnipshagen.planning_machine.Utils;
 
 /**
  * Created by nipsh on 17/03/2017.
@@ -38,6 +38,6 @@ public class ModuleObserver extends ContentObserver {
 
     @Override
     public void onChange(boolean selfChange, Uri uri) {
-        ModuleTools.refreshAllModules(mContext);
+        Utils.refreshAllModules(mContext);
     }
 }
