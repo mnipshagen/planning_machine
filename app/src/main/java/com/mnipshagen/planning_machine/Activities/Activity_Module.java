@@ -195,11 +195,11 @@ public class Activity_Module extends Activity_Base implements LoaderManager.Load
             public void onClick(View v) {
                 if (!insignificant) {
                     if (!Utils.toggleSignificant(module_code, Activity_Module.this)) {
-                        Toast.makeText(Activity_Module.this, "Could not change state. Do you already have 5 significant modules?", Toast.LENGTH_LONG).show();
+                        Toast.makeText(Activity_Module.this, "Could not change state. Do you already have 5 applicable modules?", Toast.LENGTH_LONG).show();
                         markSignificant.toggle();
                     }
                 } else {
-                    Toast.makeText(Activity_Module.this, "This module cannot be marked significant.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(Activity_Module.this, "This module cannot be marked applicable.", Toast.LENGTH_LONG).show();
                     markSignificant.toggle();
                 }
             }

@@ -131,7 +131,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_star_filled"
-            app:fab_label="Mark modules significant"
+            app:fab_label="Mark modules applicable"
             app:fabSize="mini"
             app:fab_colorNormal="@color/white"
             app:fab_colorPressed="@color/white_pressed" />

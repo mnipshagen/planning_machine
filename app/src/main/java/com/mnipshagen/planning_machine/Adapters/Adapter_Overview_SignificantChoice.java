@@ -32,7 +32,6 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
 
     private Context mContext;
     private SparseBooleanArray selected;
-    private LinkedHashMap<Integer, String> codes;
     private int amount;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -50,20 +49,25 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
     }
 
     public void markThem() {
+        int oldPos = getCursor().getPosition();
         for (int i =0; i < getItemCount(); i++) {
+            getCursor().moveToPosition(i);
+            String module_code = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
             if (selected.get(i)) {
-                Utils.setSignificant(codes.get(i), mContext);
+                Log.v("OverviewAdapter", "Marking module " + module_code + " at position " + i + " significant");
+                Utils.setSignificant(module_code, mContext);
             } else {
-                Utils.setInsignificant(codes.get(i), mContext);
+                Log.v("OverviewAdapter", "Marking module " + module_code + " at position " + i + " insignificant");
+                Utils.setInsignificant(module_code, mContext);
             }
         }
+        getCursor().moveToPosition(oldPos);
     }
 
     public Adapter_Overview_SignificantChoice(Cursor cursor, Context context) {
         super(cursor);
         mContext = context;
         selected = new SparseBooleanArray();
-        codes = new LinkedHashMap<>();
         amount = mContext.getSharedPreferences(Utils.SAVE_DATA, Context.MODE_PRIVATE).getInt(Utils.SAVE_KEY_SIGNIFICANTS, 0);
     }
 
@@ -85,24 +89,25 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
         significant = viewHolder.significant;
 
         final String module_code = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_CODE));
+        Log.v("OverviewAdapter", "The module code for position " + viewHolder.getAdapterPosition() + " is: " + module_code);
         if(mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_SIGNIFICANT)) != 0) {
             significant.setChecked(true);
             selected.put(viewHolder.getAdapterPosition(), true);
-            codes.put(viewHolder.getAdapterPosition(), module_code);
         } else {
             significant.setChecked(false);
             selected.put(viewHolder.getAdapterPosition(), false);
-            codes.put(viewHolder.getAdapterPosition(), module_code);
         }
         final boolean insignificant = module_code.equals("OPEN") || module_code.equals("LOG") || module_code.equals("SD");
-        significant.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener mOnClicker = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(!(v instanceof ToggleButton)) {
+                    significant.toggle();
+                }
                 if (!insignificant) {
                     if(selected.get(viewHolder.getAdapterPosition(), false) ) {
                         selected.put(viewHolder.getAdapterPosition(), false);
                         amount--;
-                        Log.v("OverviewAdapter", "Selected Modules: " + codes);
                         Log.v("OverviewAdapter", "Selected Modules: " + selected);
                     } else {
                         if (amount >= 5) {
@@ -112,15 +117,16 @@ public class Adapter_Overview_SignificantChoice extends RecyclerCursorAdapter<Ad
                         }
                         selected.put(viewHolder.getAdapterPosition(), true);
                         amount++;
-                        Log.v("OverviewAdapter", "Selected Modules: " + codes);
                         Log.v("OverviewAdapter", "Selected Modules: " + selected);
                     }
                 } else {
-                    Toast.makeText(mContext, "This module cannot be marked significant.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, "This module cannot be marked applicable.", Toast.LENGTH_SHORT).show();
                     significant.toggle();
                 }
             }
-        });
+        };
+        significant.setOnClickListener(mOnClicker);
+        viewHolder.itemView.setOnClickListener(mOnClicker);
 
         name.setText(mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_NAME)));
         String credits = mCursor.getString(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_ECTS)) + " ECTS";

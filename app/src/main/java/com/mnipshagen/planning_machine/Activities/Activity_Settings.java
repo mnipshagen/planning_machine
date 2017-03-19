@@ -39,6 +39,12 @@ public class Activity_Settings extends Activity_Base {
         reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String[] modules = getResources().getStringArray(R.array.moduleList);
+                for (String s : modules) {
+                    Utils.setInsignificant(Utils.getModuleCode(s), Activity_Settings.this);
+                    Utils.setNoOral(Utils.getModuleCode(s), Activity_Settings.this);
+                }
+
                 Random rnd = new Random();
                 Cursor c = getContentResolver().query(
                         DataProvider.COURSES_DB_URI,

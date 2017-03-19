@@ -343,6 +343,7 @@ public class Utils {
         cv.put(SQL_Database.MODULE_COLUMN_SIGNIFICANT, 0);
         context.getContentResolver().update(module_table,cv,SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",null);
         signAmount--;
+        signAmount = signAmount <= 0? 0 : signAmount;
         sharedPrefs.edit().putInt(SAVE_KEY_SIGNIFICANTS, signAmount).apply();
         Log.v("Utils", code + " is now insignificant.");
         return true;
@@ -368,10 +369,51 @@ public class Utils {
         }
     }
 
-    public static boolean toggleOral(String code, double grade, Context context) {
-        final ContentResolver cr = context.getContentResolver();
+    public static boolean setOral (String code, double grade, Context context) {
         SharedPreferences sharedPrefs = context.getSharedPreferences(SAVE_DATA, Context.MODE_PRIVATE);
         int oralAmount = sharedPrefs.getInt(SAVE_KEY_ORALS, 0);
+
+        if (oralAmount >= 2) {
+            return false;
+        }
+        ContentValues cv = new ContentValues();
+        Log.v("Utils", "PERFORMED ORAL");
+        cv.put(SQL_Database.MODULE_COLUMN_STATE, 1);
+        cv.put(SQL_Database.MODULE_COLUMN_GRADE, grade);
+        context.getContentResolver().update(
+                module_table,
+                cv,
+                SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",
+                null
+        );
+        oralAmount++;
+        sharedPrefs.edit().putInt(SAVE_KEY_ORALS, oralAmount).apply();
+        return true;
+    }
+
+    public static boolean setNoOral(String code, Context context) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences(SAVE_DATA, Context.MODE_PRIVATE);
+        int oralAmount = sharedPrefs.getInt(SAVE_KEY_ORALS, 0);
+
+        ContentValues cv = new ContentValues();
+        Log.v("Utils", "no oral after all");
+        cv.put(SQL_Database.MODULE_COLUMN_STATE, 0);
+        context.getContentResolver().update(
+                module_table,
+                cv,
+                SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",
+                null
+        );
+        oralAmount--;
+        oralAmount = oralAmount <=0? 0 : oralAmount;
+        sharedPrefs.edit().putInt(SAVE_KEY_ORALS, oralAmount).apply();
+        refreshModule(code, context);
+        return true;
+    }
+
+    public static boolean toggleOral(String code, double grade, Context context) {
+        final ContentResolver cr = context.getContentResolver();
+
 
         Cursor c = cr.query(module_table,
                 new String[] {SQL_Database.MODULE_COLUMN_STATE},
@@ -381,40 +423,13 @@ public class Utils {
 
         ContentValues cv = new ContentValues();
         int sign = c.getInt(0);
+        c.close();
         switch (sign) {
             case 0:
-                if (oralAmount >= 2) {
-                    return false;
-                }
-                Log.v("Utils", "PERFORMED ORAL");
-                cv.put(SQL_Database.MODULE_COLUMN_STATE, 1);
-                cv.put(SQL_Database.MODULE_COLUMN_GRADE, grade);
-                cr.update(
-                        module_table,
-                        cv,
-                        SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",
-                        null
-                );
-                oralAmount++;
-                sharedPrefs.edit().putInt(SAVE_KEY_ORALS, oralAmount).apply();
-                c.close();
-                return true;
+                return setOral(code, grade, context);
             case 1:
-                Log.v("Utils", "no oral after all");
-                cv.put(SQL_Database.MODULE_COLUMN_STATE, 0);
-                cr.update(
-                        module_table,
-                        cv,
-                        SQL_Database.MODULE_COLUMN_CODE + "='" + code + "'",
-                        null
-                );
-                oralAmount--;
-                sharedPrefs.edit().putInt(SAVE_KEY_ORALS, oralAmount).apply();
-                refreshModule(code, context);
-                c.close();
-                return true;
+                return setNoOral(code, context);
             default:
-                c.close();
                 return false;
         }
     }

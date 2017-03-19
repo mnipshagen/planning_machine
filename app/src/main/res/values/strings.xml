@@ -58,6 +58,19 @@
     <string name="LOG_title">Logic</string>
     <string name="SD_title">Statistics &amp; Data analysis</string>
 
+    <string-array name="moduleList">
+        <item>Artificial Intelligence</item>
+        <item>Cognitive Neuropsychology</item>
+        <item>Computational Linguistics</item>
+        <item>Computer Science</item>
+        <item>Mathematics</item>
+        <item>Neuroinformatics</item>
+        <item>Neurobiology</item>
+        <item>Philosophy of Mind</item>
+        <item>Logic</item>
+        <item>Statistics &amp; Data analysis</item>
+    </string-array>
+
     <string name="could_not_start">Could not start activity. Defaulted to Overview.</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
