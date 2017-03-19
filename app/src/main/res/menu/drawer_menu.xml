@@ -4,23 +4,27 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_overview"
+            android:icon="@drawable/ic_school_black"
             android:title="@string/title_overview" />
         <item
             android:id="@+id/nav_search"
+            android:icon="@drawable/ic_search_black"
             android:title="@string/title_search"/>
-
     </group>
 
 
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings_black"
             android:title="Settings"/>
         <item
             android:id="@+id/nav_webpage"
+            android:icon="@drawable/ic_public_black"
             android:title="IKW Webpage"/>
         <item
             android:id="@+id/nav_about"
+            android:icon="@drawable/ic_info_outline_black"
             android:title="About"/>
     </group>
 
