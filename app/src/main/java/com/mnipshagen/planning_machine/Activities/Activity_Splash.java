@@ -13,7 +13,6 @@ public class Activity_Splash extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // TODO make it pretty
         Intent intent = new Intent(this, Activity_Overview.class);
         startActivity(intent);
         finish();
