@@ -299,7 +299,7 @@ public class Utils {
             case "PHIL":    return 8;
             case "LOG":     return 9;
             case "SD":      return 10;
-            default:        return 0;
+            default:        return 11;
         }
     }
 

@@ -69,6 +69,7 @@
         <item>Philosophy of Mind</item>
         <item>Logic</item>
         <item>Statistics &amp; Data analysis</item>
+        <item>Open Studies</item>
     </string-array>
 
     <string name="could_not_start">Could not start activity. Defaulted to Overview.</string>

@@ -17,6 +17,8 @@ import com.mnipshagen.planning_machine.DataProviding.SQL_Database;
 import com.mnipshagen.planning_machine.Utils;
 import com.mnipshagen.planning_machine.R;
 
+import java.util.Arrays;
+
 /**
  * Created by nipsh on 12/03/2017.
  */
@@ -46,15 +48,16 @@ public class AddUnlistedCourseDialog extends DialogFragment {
         final Button butt_modules = (Button) dialog.findViewById(R.id.unknown_butt_modules);
         butt_modules.setText(module);
 
-        String[] temp = getResources().getStringArray(R.array.searchSpinnerModules);
-        final String[] modules = new String[temp.length - 3];
-        System.arraycopy(temp, 1, modules, 0, modules.length);
+        final String[] modules = getResources().getStringArray(R.array.moduleList);
+        Log.v("UNLISTED COURSE", Arrays.toString(modules));
         final boolean[] checked = new boolean[modules.length];
         for(int i = 0; i < checked.length; i++) checked[i] = false;
+        Log.v("UNLISTED COURSE", Arrays.toString(checked));
         if (code != null){
             int modID = Utils.codeToListID(code);
             checked[modID -1] = true;
         }
+        Log.v("UNLISTED COURSE", "After check for module code: " + Arrays.toString(checked));
 
         dialog.setTitle("Add an unlisted course");
         butt_cancel.setOnClickListener(new View.OnClickListener() {
