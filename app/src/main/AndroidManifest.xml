@@ -18,11 +18,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activities.Activity_Overview" android:screenOrientation="portrait" />
-        <activity android:name=".Activities.Activity_Module" android:screenOrientation="portrait" />
-        <activity android:name=".Activities.Activity_Search" android:screenOrientation="portrait" />
-        <activity android:name=".Activities.Activity_About" android:screenOrientation="portrait" />
-        <activity android:name=".Activities.Activity_Settings" android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activities.Activity_Overview"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activities.Activity_Module"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activities.Activity_Search"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activities.Activity_About"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activities.Activity_Settings"
+            android:screenOrientation="portrait" />
 
         <provider
             android:name=".DataProviding.DataProvider"
@@ -30,6 +40,16 @@
             android:exported="false"
             android:multiprocess="true" />
 
+        <activity
+            android:name=".Activities.HostActivity"
+            android:label="@string/title_activity_host"
+            android:theme="@style/AppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

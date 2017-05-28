@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:drawable="@drawable/ic_oral_outline" android:state_checked="false"/>
-<item android:drawable="@drawable/ic_oral_filled" android:state_checked="true"/>
+<item android:drawable="@drawable/ic_oral_alt_outline" android:state_checked="false"/>
+<item android:drawable="@drawable/ic_oral_alt_filled" android:state_checked="true"/>
 </selector>

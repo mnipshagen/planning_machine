@@ -69,7 +69,7 @@
             android:layout_marginBottom="16dp"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            app:srcCompat="@drawable/ic_oral_outline" />
+            app:srcCompat="@drawable/ic_oral_alt_outline" />
 
     </RelativeLayout>
 

@@ -78,7 +78,6 @@ public class Activity_Base extends AppCompatActivity{
         // initialise the navigation drawer
         initNavigationDrawer();
     }
-
     /**
      * takes care of initialising the navigation drawer, with an listener for item clicks,
      * which initialises the chosen activity

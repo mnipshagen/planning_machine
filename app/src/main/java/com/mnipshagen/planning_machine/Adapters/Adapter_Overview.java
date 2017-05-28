@@ -73,7 +73,7 @@ public class Adapter_Overview extends RecyclerCursorAdapter<Adapter_Overview.Vie
             significant.setImageResource(R.drawable.ic_star_filled);
         }
         if (mCursor.getInt(mCursor.getColumnIndexOrThrow(SQL_Database.MODULE_COLUMN_STATE)) != 0) {
-            oral.setImageResource(R.drawable.ic_oral_filled);
+            oral.setImageResource(R.drawable.ic_oral_alt_filled);
         }
 
         List<PieEntry> entries = new ArrayList<>();
